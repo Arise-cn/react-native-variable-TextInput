@@ -17,7 +17,7 @@ import { VariableTextInputView } from "react-native-variable-text-input";
 
 // ...
 
-<VariableTextInputView color="tomato" />
+<VariableTextInputView  style = {{flex:1,height:20,width:'100%'}}/>
 ```
 
 ## Contributing
