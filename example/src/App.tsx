@@ -6,22 +6,16 @@ import {
   ScrollView,
   ImageResolvedAssetSource,
   Image,
-  NativeModules,
   View,
+  processColor,
 } from 'react-native';
 import VariableTextInputView, {
   IATTextViewBase,
 } from 'react-native-variable-text-input';
-const VariableTextInputViewManager = NativeModules.VariableTextInputViewManager;
 export const App = () => {
   const inPutRef = React.createRef<IATTextViewBase>();
   const onChangeText = (text: string) => {
     console.log('sdkljflksdjfl====>', text);
-  };
-  const testAction = () => {
-    VariableTextInputViewManager.getKeyboardHeight((height: number) => {
-      console.log('=====>', height);
-    });
   };
   const insertEmoji = () => {
     const data: ImageResolvedAssetSource = Image.resolveAssetSource(
@@ -30,16 +24,37 @@ export const App = () => {
     inPutRef.current?.insertEmoji({ img: data, tag: '[苦笑]' });
   };
   const blur = () => {
-    //todo
+    inPutRef.current?.blur();
   };
   const insertMonthons = () => {
-    //todo
+    inPutRef.current?.insertMentions({
+      tag: '#',
+      name: '测试tag',
+      color: 'red',
+      id: '123344',
+    });
   };
   const changeAttributedText = () => {
-    //todo
+    const imageData: ImageResolvedAssetSource = Image.resolveAssetSource(
+      require('./[苦笑].png')
+    );
+    const emojiData = { img: imageData, tag: '[苦笑]' };
+    inPutRef.current?.changeAttributedText([
+      { type: 0, text: '普通字符' },
+      { type: 1, emojiData },
+      {
+        type: 2,
+        targData: {
+          tag: '#',
+          name: '测试tag',
+          color: processColor('red'),
+          id: '123344',
+        },
+      },
+    ]);
   };
   const focus = () => {
-    //todo
+    inPutRef.current?.focus();
   };
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -51,7 +66,7 @@ export const App = () => {
         underlineColorAndroid={'rgba(0,0,0,0)'}
       />
       <View style={{ flexDirection: 'row', marginTop: 40 }}>
-        <TouchableOpacity onPress={testAction} style={{ marginLeft: 20 }}>
+        <TouchableOpacity onPress={blur} style={{ marginLeft: 20 }}>
           <Text style={{ backgroundColor: 'yellow', color: 'red' }}>
             {'blur'}
           </Text>
@@ -67,6 +82,14 @@ export const App = () => {
           </Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={insertEmoji} style={{ marginLeft: 20 }}>
+          <Text style={{ backgroundColor: 'yellow', color: 'red' }}>
+            {'insertEmoji'}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={changeAttributedText}
+          style={{ marginLeft: 20 }}
+        >
           <Text style={{ backgroundColor: 'yellow', color: 'red' }}>
             {'insertEmoji'}
           </Text>

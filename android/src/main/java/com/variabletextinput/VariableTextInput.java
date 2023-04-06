@@ -276,11 +276,5 @@ public class VariableTextInput extends LinearLayout {
     spannableString.setSpan(span, 0, 4, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
     editText.append(spannableString);
   }
-  public static Drawable loadImage(String iconUri){
-    if (TextUtils.isEmpty(iconUri)){
-      return null;
-    }
-//    boolean isDebug = MainApplication.instance
-  }
 }
 
