@@ -5,9 +5,11 @@ my variable textInput
 ## Installation
 
 ```sh
-npm install react-native-variable-text-input
+yarn add react-native-variable-text-input
 ```
-
+```ios
+cd ios
+pod install
 ## Usage
 
 ```js
