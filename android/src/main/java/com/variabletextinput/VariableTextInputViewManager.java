@@ -1,11 +1,9 @@
 package com.variabletextinput;
-import android.util.Log;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.common.MapBuilder;
@@ -16,11 +14,10 @@ import com.facebook.react.uimanager.ViewProps;
 import com.facebook.react.uimanager.annotations.ReactProp;
 import com.facebook.react.uimanager.annotations.ReactPropGroup;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 public class VariableTextInputViewManager extends SimpleViewManager<VariableTextInput>  {
-  static enum RNTONATIVEMETHOD {
+  private enum RNTONATIVEMETHOD {
     focus("focus"),
     blur("blur"),
     insertEmoji("insertEmoji"),
