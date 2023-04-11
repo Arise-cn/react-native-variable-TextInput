@@ -7,10 +7,11 @@ import {
   ImageResolvedAssetSource,
   Image,
   View,
-  processColor,
 } from 'react-native';
 import VariableTextInputView, {
   IATTextViewBase,
+  IInserTextAttachmentItem,
+  ITextType,
 } from 'react-native-variable-text-input';
 export const App = () => {
   const inPutRef = React.createRef<IATTextViewBase>();
@@ -21,7 +22,11 @@ export const App = () => {
     const data: ImageResolvedAssetSource = Image.resolveAssetSource(
       require('./[苦笑].png')
     );
-    inPutRef.current?.insertEmoji({ img: data, tag: '[苦笑]' });
+    inPutRef.current?.insertEmoji({
+      img: data,
+      emojiTag: '[苦笑]',
+      type: ITextType.emoji,
+    });
   };
   const blur = () => {
     inPutRef.current?.blur();
@@ -32,25 +37,25 @@ export const App = () => {
       name: '测试tag',
       color: 'red',
       id: '123344',
+      type: ITextType.tagText,
     });
   };
   const changeAttributedText = () => {
     const imageData: ImageResolvedAssetSource = Image.resolveAssetSource(
       require('./[苦笑].png')
     );
-    const emojiData = { img: imageData, tag: '[苦笑]' };
+    const emojiData = { img: imageData, emojiTag: '[苦笑]' };
+    const tagData: IInserTextAttachmentItem = {
+      tag: '#',
+      name: '测试tag',
+      color: 'red',
+      id: '123344',
+      type: ITextType.tagText,
+    };
     inPutRef.current?.changeAttributedText([
       { type: 0, text: '普通字符' },
-      { type: 1, emojiData },
-      {
-        type: 2,
-        targData: {
-          tag: '#',
-          name: '测试tag',
-          color: processColor('red'),
-          id: '123344',
-        },
-      },
+      { type: 1, ...emojiData },
+      tagData,
     ]);
   };
   const focus = () => {
@@ -108,7 +113,7 @@ const styles = StyleSheet.create({
   box: {
     backgroundColor: 'blue',
     color: '#fff',
-    fontSize: 18,
+    fontSize: 10,
     width: '100%',
     minHeight: 100,
     padding: 0,

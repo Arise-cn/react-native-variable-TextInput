@@ -35,11 +35,25 @@ export enum ITextType {
   normal = 0,
   tagText = 2,
 }
+interface PrivateItemData {
+  type: ITextType;
+  text?: string;
+  color?: ProcessedColorValue | null | undefined;
+  tag?: '@' | '#';
+  name?: string;
+  id?: string;
+  img?: ImageResolvedAssetSource; //emoji图片
+  emojiTag?: string; //[微笑] //emojitag
+}
 export interface IInserTextAttachmentItem {
   type: ITextType;
-  targData?: ISendTagMensage;
-  emojiData?: IInsertEmojiConfig;
   text?: string;
+  color?: ColorValue;
+  tag?: '@' | '#';
+  name?: string;
+  id?: string;
+  img?: ImageResolvedAssetSource; //emoji图片
+  emojiTag?: string; //[微笑] //emojitag
 }
 interface IProps {
   onMention?: () => void;
@@ -63,27 +77,11 @@ interface IProps {
     e: NativeSyntheticEvent<TextInputContentSizeChangeEventData>
   ) => void;
 }
-interface IInsertTagConfig {
-  tag: '@' | '#';
-  name: string;
-  id: string;
-  color: ColorValue;
-}
-interface ISendTagMensage {
-  color: ProcessedColorValue | null | undefined;
-  tag: '@' | '#';
-  name: string;
-  id: string;
-}
-interface IInsertEmojiConfig {
-  img: ImageResolvedAssetSource;
-  tag: string; //[微笑]
-}
 export type IATTextViewBase = {
   focus: () => void;
   blur: () => void;
-  insertEmoji: (img: IInsertEmojiConfig) => void;
-  insertMentions: (data: IInsertTagConfig) => void;
+  insertEmoji: (img: IInserTextAttachmentItem) => void;
+  insertMentions: (data: IInserTextAttachmentItem) => void;
   changeAttributedText: (data: IInserTextAttachmentItem[]) => void;
 };
 export type IATTextViewRef = React.ForwardedRef<IATTextViewBase>;
@@ -119,34 +117,46 @@ const VariableTextInputView = forwardRef(
       UIManager.dispatchViewManagerCommand(
         reactTag,
         commandId,
-        !!data ? [data] : []
+        !!data ? data : []
       );
     };
-    const insertEmoji = (data: IInsertEmojiConfig) => {
+    const insertEmoji = (data: IInserTextAttachmentItem) => {
+      const sendData: PrivateItemData = {
+        ...data,
+        color: processColor(data.color),
+      };
       if (Platform.OS === 'android') {
-        callNativeMethod('insertEmoji', data);
+        callNativeMethod('insertEmoji', [sendData]);
       } else {
-        VariableTextInputViewManager.insertEmoji(data);
+        VariableTextInputViewManager.insertEmoji(sendData);
       }
     };
-    const insertMentions = (data: IInsertTagConfig) => {
-      const sendData: ISendTagMensage = {
+    const insertMentions = (data: IInserTextAttachmentItem) => {
+      const sendData: PrivateItemData = {
+        ...data,
         color: processColor(data.color),
-        tag: data.tag,
-        name: data.name,
-        id: data.id,
       };
       if (Platform.OS === 'ios') {
         VariableTextInputViewManager.insertMentions(sendData);
       } else {
-        callNativeMethod('insertMentions', sendData);
+        callNativeMethod('insertMentions', [sendData]);
       }
     };
     const changeAttributedText = (data: IInserTextAttachmentItem[]) => {
+      const sendData: PrivateItemData[] = [];
+      if (data.length > 0) {
+        data.forEach((item) => {
+          const newItem: PrivateItemData = {
+            ...item,
+            color: processColor(item.color),
+          };
+          sendData.push(newItem);
+        });
+      }
       if (Platform.OS === 'android') {
-        callNativeMethod('changeAttributedText', data);
+        callNativeMethod('changeAttributedText', sendData);
       } else {
-        VariableTextInputViewManager.changeAttributedText(data);
+        VariableTextInputViewManager.changeAttributedText(sendData);
       }
     };
     const onContentSizeChange = (event: any) => {
