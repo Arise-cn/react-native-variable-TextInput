@@ -1,4 +1,4 @@
-package com.variabletextinput;
+package com.variabletextinput.view;
 import android.content.Context;
 import android.util.AttributeSet;
 

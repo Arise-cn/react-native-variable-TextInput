@@ -13,6 +13,7 @@ import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.ViewProps;
 import com.facebook.react.uimanager.annotations.ReactProp;
 import com.facebook.react.uimanager.annotations.ReactPropGroup;
+import com.variabletextinput.view.VariableTextInput;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -176,10 +177,11 @@ public class VariableTextInputViewManager extends SimpleViewManager<VariableText
         break;
       case 2:
         //插入emoji
-        this.insertImage(args);
+        root.insertEmoji(args);
         break;
       case 3:
         //插入tag 或者@
+        root.insertMentions(args);
         //todo
         break;
       case 4:
