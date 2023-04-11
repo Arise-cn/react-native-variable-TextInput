@@ -13,6 +13,7 @@ import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.style.ImageSpan;
 import android.util.Log;
@@ -324,7 +325,10 @@ public class VariableTextInput extends LinearLayout {
         switch (richTextBean.type) {
           case 0:
             //普通文本
-            editText.setText(richTextBean.text);
+            if (!TextUtils.isEmpty(richTextBean.text)) {
+              editText.setText(richTextBean.text);
+              editText.setSelection(richTextBean.text.length());
+            }
             break;
           case 1:
             //自定义表情
