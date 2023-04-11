@@ -13,7 +13,6 @@ import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
-import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.style.ImageSpan;
 import android.util.Log;
@@ -88,9 +87,15 @@ public class VariableTextInput extends LinearLayout {
         }
         if (editText.getText() != null) {
           TextSpan[] spans = editText.getText().getSpans(0, editText.getText().length(), TextSpan.class);
+          ImageSpan[] spansImg = editText.getText().getSpans(0, editText.getText().length(), ImageSpan.class);
           //整体删除span
           if (before == 1 && count == 0) {
             for (TextSpan textSpan : spans) {
+              if (editText.getText().getSpanEnd(textSpan) == start && !editText.getText().toString().endsWith(textSpan.getRichTextBean().name)) {
+                editText.getText().delete(editText.getText().getSpanStart(textSpan), editText.getText().getSpanEnd(textSpan));
+              }
+            }
+            for (ImageSpan textSpan : spansImg) {
               if (editText.getText().getSpanEnd(textSpan) == start) {
                 editText.getText().delete(editText.getText().getSpanStart(textSpan), editText.getText().getSpanEnd(textSpan));
               }
@@ -312,64 +317,83 @@ public class VariableTextInput extends LinearLayout {
     editText.append(spannableString);
   }
 
-  public void insertMentions(ReadableArray args) {
+  public void handleRichText(ReadableArray args) {
     if (args != null && args.size() > 0) {
-      RichTextBean richTextBean = handleParams(args);
-      setMentionsSpan(richTextBean);
-    }
-  }
-
-  public void insertEmoji(ReadableArray args) {
-    if (args != null && args.size() > 0) {
-      RichTextBean richTextBean = handleParams(args);
-      int startIndex = editText.getSelectionStart();
-      Log.e("startIndex", startIndex + "");
-      int endIndex = startIndex + richTextBean.tag.length();
-      Log.e("endIndex", endIndex + "");
-      Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.kuxiao);
-      ImageSpan imageSpan = new ImageSpan(mContext, bitmap);
-      if (editText.getText() != null) {
-        editText.getText().insert(startIndex, richTextBean.tag);
+      for (int i = 0; i < args.size(); i++) {
+        RichTextBean richTextBean = handleParams(args.getMap(i));
+        switch (richTextBean.type) {
+          case 0:
+            //普通文本
+            editText.setText(richTextBean.text);
+            break;
+          case 1:
+            //自定义表情
+            insertEmoji(richTextBean);
+            break;
+          case 2:
+            //@或者#话题
+            insertMentions(richTextBean);
+            break;
+          default:
+            break;
+        }
       }
-      SpannableStringBuilder ss = SpannableStringBuilder.valueOf(editText.getText());
-      ss.setSpan(imageSpan, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-      editText.setText(ss);
-      editText.setSelection(endIndex);
-      editText.getText().replace(startIndex, endIndex, richTextBean.content);
     }
   }
 
-  private RichTextBean handleParams(ReadableArray args) {
+  private RichTextBean handleParams(ReadableMap map) {
     RichTextBean richTextBean = new RichTextBean();
-    ReadableMap map = args.getMap(0);
+    if (map.hasKey(ActivityConst.TYPE)) {
+      richTextBean.type = map.getInt(ActivityConst.TYPE);
+    }
     if (map.hasKey(ActivityConst.ID)) {
       richTextBean.id = map.getString(ActivityConst.ID);
     }
     if (map.hasKey(ActivityConst.TAG)) {
-      String tag = map.getString(ActivityConst.TAG);
-      //表情
-      if (!TextUtils.isEmpty(tag) && tag.startsWith("[")) {
-        richTextBean.tag = tag;
-        richTextBean.content = String.format(mContext.getString(R.string.insert_emoji), tag.replaceAll("\\[|\\]", ""));
-      } else {
-        richTextBean.tag = tag;
-      }
+      richTextBean.tag = map.getString(ActivityConst.TAG);
+    }
+    if (map.hasKey(ActivityConst.EMOJI_TAG) && richTextBean.type == 1) {
+      richTextBean.tag = map.getString(ActivityConst.EMOJI_TAG);
+      richTextBean.content = String.format(mContext.getString(R.string.insert_emoji), richTextBean.tag.replaceAll("\\[|\\]", ""));
     }
     if (map.hasKey(ActivityConst.NAME)) {
       String name = map.getString(ActivityConst.NAME);
       richTextBean.name = name + " ";
-      richTextBean.content = String.format(mContext.getString(R.string.insert_mention), richTextBean.tag, name, richTextBean.id);
+      //插入@或者#
+      if (richTextBean.type == 2) {
+        richTextBean.content = String.format(mContext.getString(R.string.insert_mention), richTextBean.tag, name, richTextBean.id);
+      }
     }
     if (map.hasKey(ActivityConst.COLOR)) {
       richTextBean.color = map.getInt(ActivityConst.COLOR);
     }
+    if (map.hasKey(ActivityConst.TEXT)) {
+      richTextBean.text = map.getString(ActivityConst.TEXT);
+    }
     return richTextBean;
   }
 
-  private void setMentionsSpan(RichTextBean richTextBean) {
+  public void insertEmoji(RichTextBean richTextBean) {
     int startIndex = editText.getSelectionStart();
     Log.e("startIndex", startIndex + "");
-    int endIndex = startIndex + richTextBean.name.length() + richTextBean.tag.length();
+    int endIndex = startIndex + richTextBean.tag.length();
+    Log.e("endIndex", endIndex + "");
+    if (editText.getText() != null) {
+      editText.getText().insert(startIndex, richTextBean.tag);
+    }
+    Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.kuxiao);
+    ImageSpan imageSpan = new ImageSpan(mContext, bitmap);
+    SpannableStringBuilder ss = SpannableStringBuilder.valueOf(editText.getText());
+    ss.setSpan(imageSpan, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    editText.setText(ss);
+    editText.setSelection(endIndex);
+    editText.getText().replace(startIndex, endIndex, richTextBean.content);
+  }
+
+  private void insertMentions(RichTextBean richTextBean) {
+    int startIndex = editText.getSelectionStart();
+    Log.e("startIndex", startIndex + "");
+    int endIndex = startIndex + richTextBean.tag.length() + richTextBean.name.length();
     Log.e("endIndex", endIndex + "");
     if (editText.getText() != null) {
       editText.getText().insert(startIndex, richTextBean.tag + richTextBean.name);
