@@ -176,17 +176,10 @@ public class VariableTextInputViewManager extends SimpleViewManager<VariableText
         root.blur();
         break;
       case 2:
-        //插入emoji
-        root.insertEmoji(args);
-        break;
       case 3:
-        //插入tag 或者@
-        root.insertMentions(args);
-        //todo
-        break;
       case 4:
         //更改富文本
-        //todo
+        root.handleRichText(args);
         break;
       default:
         break;

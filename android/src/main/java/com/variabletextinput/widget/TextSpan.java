@@ -49,7 +49,7 @@ public class TextSpan extends DynamicDrawableSpan {
     Paint paint = new Paint();
     paint.setAntiAlias(true);
     //设置字体画笔的颜色
-    paint.setColor(mContext.getResources().getColor(android.R.color.holo_red_dark));
+    paint.setColor(mRichTextBean.color);
     //设置字体的大小
     paint.setTextSize(50);
     Rect rect = new Rect();
