@@ -172,10 +172,10 @@ RCT_EXPORT_METHOD(insertEmoji:( NSDictionary *)rnImageData)
   self.typingAttributes = self.textInput.typingAttributes;
   EmojiTextAttachment *emojiTextAttachment = [EmojiTextAttachment new];
   //Set tag and image
-  emojiTextAttachment.emojiTag = rnImageData[@"tag"];
+  emojiTextAttachment.emojiTag = rnImageData[@"emojiTag"];
   UIImage *image =[RCTConvert UIImage:rnImageData[@"img"]];
-  emojiTextAttachment.showCopyStr =rnImageData[@"tag"];
-  if ([self isOutMaxLength:rnImageData[@"tag"]]) {
+  emojiTextAttachment.showCopyStr =rnImageData[@"emojiTag"];
+  if ([self isOutMaxLength:rnImageData[@"emojiTag"]]) {
     return;
   }
   emojiTextAttachment.image = image;
@@ -225,13 +225,13 @@ RCT_EXPORT_METHOD(insertEmoji:( NSDictionary *)rnImageData)
       [attStr appendAttributedString:normMutaStr];
     }
     if(type == 1){
-      NSDictionary *rnImageData = [RCTConvert NSDictionary:dic[@"emojiData"]];
+      NSDictionary *rnImageData = dic;
       EmojiTextAttachment *emojiTextAttachment = [EmojiTextAttachment new];
       //Set tag and image
-      emojiTextAttachment.emojiTag = rnImageData[@"tag"];
+      emojiTextAttachment.emojiTag = rnImageData[@"emojiTag"];
       UIImage *image =[RCTConvert UIImage:rnImageData[@"img"]];
-      emojiTextAttachment.showCopyStr =rnImageData[@"tag"];
-      if ([self isOutMaxLength:rnImageData[@"tag"]]) {
+      emojiTextAttachment.showCopyStr =rnImageData[@"emojiTag"];
+      if ([self isOutMaxLength:rnImageData[@"emojiTag"]]) {
         return;
       }
       emojiTextAttachment.image = image;
@@ -241,7 +241,7 @@ RCT_EXPORT_METHOD(insertEmoji:( NSDictionary *)rnImageData)
       [attStr appendAttributedString:str];
     }
     if(type == 2){
-      NSDictionary *mention =[RCTConvert NSDictionary:dic[@"targData"]];
+      NSDictionary *mention =dic;
       NSString *tag = [RCTConvert NSString:mention[@"tag"]];
       NSString *name =[RCTConvert NSString:mention[@"name"]];
       UIColor *color =  [RCTConvert UIColor:mention[@"color"]];

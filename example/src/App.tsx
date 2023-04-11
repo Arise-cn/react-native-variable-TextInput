@@ -76,27 +76,27 @@ export const App = () => {
             {'blur'}
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={focus} style={{ marginLeft: 20 }}>
+        <TouchableOpacity onPress={focus} style={{ marginLeft: 10 }}>
           <Text style={{ backgroundColor: 'yellow', color: 'red' }}>
             {'focus'}
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={insertMonthons} style={{ marginLeft: 20 }}>
+        <TouchableOpacity onPress={insertMonthons} style={{ marginLeft: 10 }}>
           <Text style={{ backgroundColor: 'yellow', color: 'red' }}>
             {'insertMonthons'}
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={insertEmoji} style={{ marginLeft: 20 }}>
+        <TouchableOpacity onPress={insertEmoji} style={{ marginLeft: 10 }}>
           <Text style={{ backgroundColor: 'yellow', color: 'red' }}>
             {'insertEmoji'}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={changeAttributedText}
-          style={{ marginLeft: 20 }}
+          style={{ marginLeft: 10 }}
         >
           <Text style={{ backgroundColor: 'yellow', color: 'red' }}>
-            {'insertEmoji'}
+            {'changeAttributedText'}
           </Text>
         </TouchableOpacity>
       </View>
