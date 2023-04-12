@@ -63,7 +63,18 @@ public class VariableTextInputViewManager extends SimpleViewManager<VariableText
       view.setTextColor(color);
     }
   }
-
+  @ReactProp(name = ViewProps.FONT_SIZE, customType = "FontColor")
+  public void setFontSize(VariableTextInput view, @Nullable Integer fontSize) {
+    if (fontSize != null) {
+      view.setFontSize(fontSize);
+    }
+  }
+  @ReactProp(name =ViewProps.FONT_FAMILY,customType = "FontFamily")
+  public void setFontFontFamily(VariableTextInput view,@Nullable String fontFamily){
+    if (fontFamily != null){
+      view.setFontFamily(fontFamily);
+    }
+  }
   @ReactProp(name = "selectionColor", customType = "Color")
   public void setSelectionColor(VariableTextInput view, @Nullable Integer color) {
     if (color != null) {

@@ -113,9 +113,8 @@ const styles = StyleSheet.create({
   box: {
     backgroundColor: 'blue',
     color: '#fff',
-    fontSize: 10,
+    fontSize: 18,
     width: '100%',
     minHeight: 100,
-    padding: 0,
   },
 });

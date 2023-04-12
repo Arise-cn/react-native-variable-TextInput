@@ -6,6 +6,7 @@ import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.PorterDuff;
+import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.text.Editable;
@@ -16,6 +17,7 @@ import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.text.style.ImageSpan;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.inputmethod.InputMethodManager;
@@ -31,6 +33,7 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.uimanager.Spacing;
 import com.facebook.react.uimanager.events.RCTEventEmitter;
+import com.facebook.react.views.text.ReactFontManager;
 import com.variabletextinput.R;
 import com.variabletextinput.bean.RichTextBean;
 import com.variabletextinput.util.ActivityConst;
@@ -61,7 +64,7 @@ public class VariableTextInput extends LinearLayout {
     editText.setLayoutParams(new ScrollView.LayoutParams(MATCH_PARENT, WRAP_CONTENT));
     editText.setGravity(Gravity.TOP);
     editText.setInputType(editText.getInputType() | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
-
+    editText.setPadding(0,0,0,0);
     // This was used in conjunction with setting raw input type for selecting lock notes.
     // However, it causes the keyboard to not come up for editing existing notes.
     // Tested while offline using brand new installation on Android 6 emulator, but a user with Android 7 also reported it.
@@ -130,19 +133,26 @@ public class VariableTextInput extends LinearLayout {
           // ...
           oldHeight = newHeight; // 更新旧的高度
           WritableMap contentSize = Arguments.createMap();
-          contentSize.putDouble("height", newHeight * 4 / 11);
-          contentSize.putDouble("width", editText.getWidth() * 4 / 11);
+          int pdHeight = pxToDp(newHeight);
+          int pdWidth = pxToDp(editText.getWidth());
+          contentSize.putDouble("height", pdHeight);
+          contentSize.putDouble("width", pdWidth);
           WritableMap event = Arguments.createMap();
           event.putMap("contentSize", contentSize);
           final Context context = getContext();
           if (context instanceof ReactContext) {
+            Log.d("输入框高度", "afterTextChanged: "+event);
             ((ReactContext) context).getJSModule(RCTEventEmitter.class).receiveEvent(getId(), "onAndroidContentSizeChange", event);
           }
         }
       }
     });
   }
-
+  public int pxToDp(int px) {
+    DisplayMetrics displayMetrics = getContext().getResources().getDisplayMetrics();
+    int dpi = displayMetrics.densityDpi;
+    return Math.round(px / (dpi / 160f));
+  }
   @Override
   protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
     super.onLayout(changed, left, top, right, bottom);
@@ -307,7 +317,17 @@ public class VariableTextInput extends LinearLayout {
   public void setUnderLineColorAndroid(Integer color) {
     editText.setBackgroundTintList(ColorStateList.valueOf(color));
   }
-
+  public void setFontSize(Integer fontSize){
+    editText.setTextSize(fontSize);
+  }
+  public void setFontFamily(String fontFamily){
+    int style = Typeface.NORMAL;
+    if (editText.getTypeface() != null){
+      style = editText.getTypeface().getStyle();
+    }
+    Typeface newTypeFace = ReactFontManager.getInstance().getTypeface(fontFamily,style,editText.getContext().getAssets());
+    editText.setTypeface(newTypeFace);
+  }
   public void insertImage(String imagePath) {
     Bitmap bitmap = BitmapFactory.decodeFile(imagePath);
     Drawable drawable = new BitmapDrawable(getResources(), bitmap);

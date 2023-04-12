@@ -162,9 +162,12 @@ const VariableTextInputView = forwardRef(
     const onContentSizeChange = (event: any) => {
       const { style } = props;
       const styles = StyleSheet.flatten(style);
-      if (!styles.height && styles.flex !== 1) {
+      if (styles.height === undefined && styles.flex !== 1) {
         const contentSizeHeight = event.nativeEvent.contentSize.height;
         if (!!styles.maxHeight && contentSizeHeight > styles.maxHeight) {
+          return;
+        }
+        if (!!styles.minHeight && contentSizeHeight < styles.minHeight) {
           return;
         }
         setCurrentHeight(event.nativeEvent.contentSize.height);
@@ -173,9 +176,12 @@ const VariableTextInputView = forwardRef(
     const onAndroidContentSizeChange = (event: any) => {
       const { style } = props;
       const styles = StyleSheet.flatten(style);
-      if (!styles.height && styles.flex !== 1) {
+      if (styles.height === undefined && styles.flex !== 1) {
         const contentSizeHeight = event.nativeEvent.contentSize.height;
         if (!!styles.maxHeight && contentSizeHeight > styles.maxHeight) {
+          return;
+        }
+        if (!!styles.minHeight && contentSizeHeight < styles.minHeight) {
           return;
         }
         setCurrentHeight(event.nativeEvent.contentSize.height);
@@ -196,17 +202,17 @@ const VariableTextInputView = forwardRef(
       props.onChangeText && props.onChangeText(e.nativeEvent.text);
       props.onChange && props.onChange(e);
     };
-    const style = StyleSheet.flatten([{ height: currentHeight }, props.style]);
+    const style = StyleSheet.flatten([props.style, { height: currentHeight }]);
     return (
       <RNTVariableTextInputView
         ref={nativeRef}
         onChange={_onChange}
-        style={style}
         text={props.value}
         onContentSizeChange={onContentSizeChange}
         onAndroidChange={onAndroidChange}
         onAndroidContentSizeChange={onAndroidContentSizeChange}
         {...props}
+        style={style}
       />
     );
   }
