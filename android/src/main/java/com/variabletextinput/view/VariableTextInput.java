@@ -7,16 +7,12 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.text.Editable;
-import android.text.Spannable;
 import android.text.SpannableString;
-import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.TextWatcher;
-import android.text.style.ImageSpan;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
@@ -37,6 +33,7 @@ import com.facebook.react.views.text.ReactFontManager;
 import com.variabletextinput.R;
 import com.variabletextinput.bean.RichTextBean;
 import com.variabletextinput.util.ActivityConst;
+import com.variabletextinput.util.BitMapUtil;
 import com.variabletextinput.widget.TextSpan;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
@@ -52,6 +49,7 @@ public class VariableTextInput extends LinearLayout {
   private Boolean ignoreNextLocalTextChange = false;
 
   private Context mContext;
+  private SpannableString mSpannableString;
 
   public VariableTextInput(Context context) {
     super(context);
@@ -64,7 +62,7 @@ public class VariableTextInput extends LinearLayout {
     editText.setLayoutParams(new ScrollView.LayoutParams(MATCH_PARENT, WRAP_CONTENT));
     editText.setGravity(Gravity.TOP);
     editText.setInputType(editText.getInputType() | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
-    editText.setPadding(0,0,0,0);
+    editText.setPadding(0, 0, 0, 0);
     // This was used in conjunction with setting raw input type for selecting lock notes.
     // However, it causes the keyboard to not come up for editing existing notes.
     // Tested while offline using brand new installation on Android 6 emulator, but a user with Android 7 also reported it.
@@ -76,10 +74,22 @@ public class VariableTextInput extends LinearLayout {
       private int oldHeight = editText.getHeight(); // 保存旧的高度
       private int oldWidth = editText.getWidth(); // 保存旧的宽度
       private String mPreviousText;
+      private int mSpanLength = -1;
 
       @Override
       public void beforeTextChanged(CharSequence s, int start, int count, int after) {
         mPreviousText = s.toString();
+        if (start == 0 || editText.getText() == null) return;
+        if (count > after) {
+          TextSpan[] spans = editText.getText().getSpans(start + count, start + count, TextSpan.class);
+          if (spans == null || spans.length == 0) return;
+          for (TextSpan span : spans) {
+            int endSpanIndex = editText.getText().getSpanEnd(span);
+            if (endSpanIndex != start + count) continue;
+            mSpanLength = span.getRichTextBean().content.length() - 1;
+            editText.getText().removeSpan(span);
+          }
+        }
       }
 
       @Override
@@ -89,32 +99,20 @@ public class VariableTextInput extends LinearLayout {
         if (count == 0 && before == 0) {
           return;
         }
-        if (editText.getText() != null) {
-          TextSpan[] spans = editText.getText().getSpans(0, editText.getText().length(), TextSpan.class);
-          ImageSpan[] spansImg = editText.getText().getSpans(0, editText.getText().length(), ImageSpan.class);
-          //整体删除span
-          if (before == 1 && count == 0) {
-            for (TextSpan textSpan : spans) {
-              if (editText.getText().getSpanEnd(textSpan) == start && !editText.getText().toString().endsWith(textSpan.getRichTextBean().name)) {
-                editText.getText().delete(editText.getText().getSpanStart(textSpan), editText.getText().getSpanEnd(textSpan));
-              }
-            }
-            for (ImageSpan textSpan : spansImg) {
-              if (editText.getText().getSpanEnd(textSpan) == start) {
-                editText.getText().delete(editText.getText().getSpanStart(textSpan), editText.getText().getSpanEnd(textSpan));
-              }
-            }
-          }
+        String newText = s.toString().substring(start, start + count);
+        String oldText = mPreviousText.substring(start, start + before);
+        // Don't send same text changes
+        if (count == before && newText.equals(oldText)) {
+          return;
         }
-//        String newText = s.toString().substring(start, start + count);
-//        String oldText = mPreviousText.substring(start, start + before);
-//        // Don't send same text changes
-//        if (count == before && newText.equals(oldText)) {
-//          return;
-//        }
         if (ignoreNextLocalTextChange) {
           ignoreNextLocalTextChange = false;
           return;
+        }
+        if (editText.getText() != null && mSpanLength > -1) {
+          int length = mSpanLength;
+          mSpanLength = -1;
+          editText.getText().replace(start - length, start, "");
         }
         WritableMap event = Arguments.createMap();
         event.putString("text", s.toString());
@@ -141,18 +139,20 @@ public class VariableTextInput extends LinearLayout {
           event.putMap("contentSize", contentSize);
           final Context context = getContext();
           if (context instanceof ReactContext) {
-            Log.d("输入框高度", "afterTextChanged: "+event);
+            Log.d("输入框高度", "afterTextChanged: " + event);
             ((ReactContext) context).getJSModule(RCTEventEmitter.class).receiveEvent(getId(), "onAndroidContentSizeChange", event);
           }
         }
       }
     });
   }
+
   public int pxToDp(int px) {
     DisplayMetrics displayMetrics = getContext().getResources().getDisplayMetrics();
     int dpi = displayMetrics.densityDpi;
     return Math.round(px / (dpi / 160f));
   }
+
   @Override
   protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
     super.onLayout(changed, left, top, right, bottom);
@@ -317,25 +317,18 @@ public class VariableTextInput extends LinearLayout {
   public void setUnderLineColorAndroid(Integer color) {
     editText.setBackgroundTintList(ColorStateList.valueOf(color));
   }
-  public void setFontSize(Integer fontSize){
+
+  public void setFontSize(Integer fontSize) {
     editText.setTextSize(fontSize);
   }
-  public void setFontFamily(String fontFamily){
+
+  public void setFontFamily(String fontFamily) {
     int style = Typeface.NORMAL;
-    if (editText.getTypeface() != null){
+    if (editText.getTypeface() != null) {
       style = editText.getTypeface().getStyle();
     }
-    Typeface newTypeFace = ReactFontManager.getInstance().getTypeface(fontFamily,style,editText.getContext().getAssets());
+    Typeface newTypeFace = ReactFontManager.getInstance().getTypeface(fontFamily, style, editText.getContext().getAssets());
     editText.setTypeface(newTypeFace);
-  }
-  public void insertImage(String imagePath) {
-    Bitmap bitmap = BitmapFactory.decodeFile(imagePath);
-    Drawable drawable = new BitmapDrawable(getResources(), bitmap);
-    drawable.setBounds(0, 0, getWidth(), getHeight());
-    ImageSpan span = new ImageSpan(drawable, ImageSpan.ALIGN_BASELINE);
-    SpannableString spannableString = new SpannableString("face");
-    spannableString.setSpan(span, 0, 4, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-    editText.append(spannableString);
   }
 
   public void handleRichText(ReadableArray args) {
@@ -406,10 +399,10 @@ public class VariableTextInput extends LinearLayout {
       editText.getText().insert(startIndex, richTextBean.tag);
     }
     Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.kuxiao);
-    ImageSpan imageSpan = new ImageSpan(mContext, bitmap);
-    SpannableStringBuilder ss = SpannableStringBuilder.valueOf(editText.getText());
-    ss.setSpan(imageSpan, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-    editText.setText(ss);
+    TextSpan imageSpan = new TextSpan(mContext, bitmap, richTextBean);
+    mSpannableString = SpannableString.valueOf(editText.getText());
+    mSpannableString.setSpan(imageSpan, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    editText.setText(mSpannableString);
     editText.setSelection(endIndex);
     editText.getText().replace(startIndex, endIndex, richTextBean.content);
   }
@@ -422,10 +415,11 @@ public class VariableTextInput extends LinearLayout {
     if (editText.getText() != null) {
       editText.getText().insert(startIndex, richTextBean.tag + richTextBean.name);
     }
-    SpannableStringBuilder ss = SpannableStringBuilder.valueOf(editText.getText());
-    TextSpan textSpan = new TextSpan(mContext, richTextBean);
-    ss.setSpan(textSpan, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-    editText.setText(ss);
+    Bitmap bitmap = BitMapUtil.getTextBitmap(richTextBean.tag + richTextBean.name, editText.getTypeface(), editText.getTextSize(), richTextBean.color);
+    TextSpan textSpan = new TextSpan(mContext, bitmap, richTextBean);
+    mSpannableString = SpannableString.valueOf(editText.getText());
+    mSpannableString.setSpan(textSpan, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    editText.setText(mSpannableString);
     editText.setSelection(endIndex);
     editText.getText().replace(startIndex, endIndex, richTextBean.content);
   }

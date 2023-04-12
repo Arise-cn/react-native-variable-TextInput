@@ -5,7 +5,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReadableArray;
-import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.common.MapBuilder;
 import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.Spacing;
@@ -196,12 +195,7 @@ public class VariableTextInputViewManager extends SimpleViewManager<VariableText
         break;
     }
   }
-  public void insertImage(ReadableArray args) {
-    ReadableMap mapData = args.getMap(0);
-    String uri = mapData.getMap("img").getString("uri");
-    String tag = mapData.getString("tag");
-    editText.insertImage(uri);
-  }
+
   @Override
   public Map<String, Object> getConstants() {
     final Map<String, Object> constants = new HashMap<>();
