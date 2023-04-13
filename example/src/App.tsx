@@ -16,7 +16,16 @@ import VariableTextInputView, {
 export const App = () => {
   const inPutRef = React.createRef<IATTextViewBase>();
   const onChangeText = (text: string) => {
-    console.log('sdkljflksdjfl====>', text);
+    const triggerRegEx = /({([^{^}]*)}\[([^[]*)]\(([^(^)]*)\))/gi;
+    const singleGroupTriggerRegEx = /({[^{^}]*}\[[^[]*]\([^(^)]*\))/gi;
+    const matchStr = text.match(triggerRegEx);
+    if (matchStr !== null) {
+      const subStrArr = text.split(triggerRegEx);
+      subStrArr.forEach((item) => {
+        const arr = item.match(singleGroupTriggerRegEx);
+        console.log('====>', arr);
+      });
+    }
   };
   const insertEmoji = () => {
     const data: ImageResolvedAssetSource = Image.resolveAssetSource(
@@ -113,7 +122,7 @@ const styles = StyleSheet.create({
   box: {
     backgroundColor: 'blue',
     color: '#fff',
-    fontSize: 18,
+    fontSize: 14,
     width: '100%',
     minHeight: 100,
   },

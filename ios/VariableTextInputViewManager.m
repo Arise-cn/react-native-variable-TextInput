@@ -192,6 +192,9 @@ RCT_EXPORT_METHOD(insertEmoji:( NSDictionary *)rnImageData)
   NSString *planStr = [self.textInput.textStorage getPlainString];
   [self.textInput setPlaceholderVisibleForText:planStr];
   self.textInput.typingAttributes = self.typingAttributes;
+    if (_textInput.onChange) {
+        _textInput.onChange(@{@"text": [_textInput.textStorage getPlainString]});
+    }
 }
 -(void)insertTagText:(NSDictionary *)mention{
   NSString *tag = [RCTConvert NSString:mention[@"tag"]];
@@ -264,6 +267,9 @@ RCT_EXPORT_METHOD(insertEmoji:( NSDictionary *)rnImageData)
   }];
   [attStr addAttributes:_textInput.defultTypingAttributes range:NSMakeRange(0, attStr.length)];
   _textInput.attributedText = attStr;
+    if (_textInput.onChange) {
+        _textInput.onChange(@{@"text": [_textInput.textStorage getPlainString]});
+    }
   
 }
 @end
