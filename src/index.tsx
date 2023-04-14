@@ -88,7 +88,9 @@ export type IATTextViewRef = React.ForwardedRef<IATTextViewBase>;
 
 const VariableTextInputView = forwardRef(
   (props: IProps, ref: IATTextViewRef) => {
-    const [currentHeight, setCurrentHeight] = useState(undefined);
+    const [currentHeight, setCurrentHeight] = useState<number | undefined>(
+      undefined
+    );
     const nativeRef = useRef(null);
     const _onChange = (e: NativeSyntheticEvent<TextInputChangeEventData>) => {
       props.onChangeText && props.onChangeText(e.nativeEvent.text);
@@ -164,10 +166,12 @@ const VariableTextInputView = forwardRef(
       const styles = StyleSheet.flatten(style);
       if (styles.height === undefined && styles.flex !== 1) {
         const contentSizeHeight = event.nativeEvent.contentSize.height;
-        if (!!styles.maxHeight && contentSizeHeight > styles.maxHeight) {
+        if (!!styles.maxHeight && contentSizeHeight >= styles.maxHeight) {
+          setCurrentHeight(parseFloat(`${styles.maxHeight}`));
           return;
         }
-        if (!!styles.minHeight && contentSizeHeight < styles.minHeight) {
+        if (!!styles.minHeight && contentSizeHeight <= styles.minHeight) {
+          setCurrentHeight(parseFloat(`${styles.minHeight}`));
           return;
         }
         setCurrentHeight(event.nativeEvent.contentSize.height);
@@ -179,9 +183,11 @@ const VariableTextInputView = forwardRef(
       if (styles.height === undefined && styles.flex !== 1) {
         const contentSizeHeight = event.nativeEvent.contentSize.height;
         if (!!styles.maxHeight && contentSizeHeight > styles.maxHeight) {
+          setCurrentHeight(parseFloat(`${styles.maxHeight}`));
           return;
         }
         if (!!styles.minHeight && contentSizeHeight < styles.minHeight) {
+          setCurrentHeight(parseFloat(`${styles.minHeight}`));
           return;
         }
         setCurrentHeight(event.nativeEvent.contentSize.height);

@@ -482,8 +482,12 @@ static NSString * const kTextAlignmentKey = @"textAlignment";
         [super cut:sender];
         UIPasteboard *defaultPasteboard = [UIPasteboard generalPasteboard];
         [defaultPasteboard setString:content];
+        // 标记视图需要重新布局
+        [self setNeedsLayout];f
         return;
     }
+    // 标记视图需要重新布局
+    [self setNeedsLayout];
     [super cut:sender];
 }
 
