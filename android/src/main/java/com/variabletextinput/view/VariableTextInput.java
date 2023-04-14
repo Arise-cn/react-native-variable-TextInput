@@ -438,7 +438,7 @@ public class VariableTextInput extends LinearLayout {
       editText.getText().insert(startIndex, richTextBean.tag);
     }
     Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.kuxiao);
-    TextSpan imageSpan = new TextSpan(mContext, bitmap, richTextBean);
+    TextSpan imageSpan = new TextSpan(mContext, BitmapUtil.setBitmapSize(bitmap, editText.getTextSize()), richTextBean);
     mSpannableString = SpannableString.valueOf(editText.getText());
     mSpannableString.setSpan(imageSpan, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
     editText.setText(mSpannableString);
