@@ -1,6 +1,8 @@
 package com.variabletextinput.view;
 
 import android.app.Activity;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
@@ -33,7 +35,7 @@ import com.facebook.react.views.text.ReactFontManager;
 import com.variabletextinput.R;
 import com.variabletextinput.bean.RichTextBean;
 import com.variabletextinput.util.ActivityConst;
-import com.variabletextinput.util.BitMapUtil;
+import com.variabletextinput.util.BitmapUtil;
 import com.variabletextinput.widget.TextSpan;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
@@ -109,7 +111,7 @@ public class VariableTextInput extends LinearLayout {
           ignoreNextLocalTextChange = false;
           return;
         }
-        if (editText.getText() != null && mSpanLength > -1) {
+        if (before == 1 && count == 0 && editText.getText() != null && mSpanLength > -1) {
           int length = mSpanLength;
           mSpanLength = -1;
           editText.getText().replace(start - length, start, "");
@@ -145,6 +147,43 @@ public class VariableTextInput extends LinearLayout {
         }
       }
     });
+    editText.setOnMenuItemCallBack(new VariableEditText.OnMenuItemCallBack() {
+      @Override
+      public void onCut() {
+        handleClipBoardData();
+      }
+
+      @Override
+      public void onCopy() {
+        handleClipBoardData();
+      }
+
+      @Override
+      public void onPaste() {
+        Log.e("onPaste", "执行onPaste方法");
+      }
+    });
+  }
+
+  //处理粘贴板数据
+  private void handleClipBoardData() {
+    ClipboardManager clipboardManager = (ClipboardManager) mContext.getSystemService(Context.CLIPBOARD_SERVICE);
+    if (clipboardManager != null && editText.getText() != null) {
+      Editable editable = Editable.Factory.getInstance().newEditable(editText.getText().subSequence(editText.getSelectionStart(), editText.getSelectionEnd()));
+      TextSpan[] spans = editable.getSpans(0, editable.length(), TextSpan.class);
+      if (spans == null || spans.length == 0) return;
+      for (TextSpan span : spans) {
+        String text = span.getRichTextBean().tag;
+        if (!TextUtils.isEmpty(span.getRichTextBean().name)) {
+          text = span.getRichTextBean().tag + span.getRichTextBean().name;
+        }
+        int startIndex = editable.getSpanStart(span);
+        int endIndex = editable.getSpanEnd(span);
+        editable.replace(startIndex, endIndex, text);
+      }
+      ClipData clipData = ClipData.newPlainText("text", editable);
+      clipboardManager.setPrimaryClip(clipData);
+    }
   }
 
   public int pxToDp(int px) {
@@ -371,7 +410,7 @@ public class VariableTextInput extends LinearLayout {
     }
     if (map.hasKey(ActivityConst.EMOJI_TAG) && richTextBean.type == 1) {
       richTextBean.tag = map.getString(ActivityConst.EMOJI_TAG);
-      richTextBean.content = String.format(mContext.getString(R.string.insert_emoji), richTextBean.tag.replaceAll("\\[|\\]", ""));
+      richTextBean.content = richTextBean.tag;
     }
     if (map.hasKey(ActivityConst.NAME)) {
       String name = map.getString(ActivityConst.NAME);
@@ -415,7 +454,7 @@ public class VariableTextInput extends LinearLayout {
     if (editText.getText() != null) {
       editText.getText().insert(startIndex, richTextBean.tag + richTextBean.name);
     }
-    Bitmap bitmap = BitMapUtil.getTextBitmap(richTextBean.tag + richTextBean.name, editText.getTypeface(), editText.getTextSize(), richTextBean.color);
+    Bitmap bitmap = BitmapUtil.getTextBitmap(richTextBean.tag + richTextBean.name, editText.getTypeface(), editText.getTextSize(), richTextBean.color);
     TextSpan textSpan = new TextSpan(mContext, bitmap, richTextBean);
     mSpannableString = SpannableString.valueOf(editText.getText());
     mSpannableString.setSpan(textSpan, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);

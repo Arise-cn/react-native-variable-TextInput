@@ -6,7 +6,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
 
-public class BitMapUtil {
+public class BitmapUtil {
 
   public static Bitmap getTextBitmap(String name, Typeface typeface, float fontSize, int color) {
     Paint paint = new Paint();
