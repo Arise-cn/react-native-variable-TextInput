@@ -1,4 +1,5 @@
 package com.variabletextinput;
+import android.util.Log;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import androidx.annotation.NonNull;
@@ -161,7 +162,7 @@ public class VariableTextInputViewManager extends SimpleViewManager<VariableText
   @Override
   public Map<String, Integer> getCommandsMap() {
     Map<String,Integer> map = new HashMap<>();
-    map.put(RNTONATIVEMETHOD.focus.name,0);
+    map.put(RNTONATIVEMETHOD.focus.name,5);
     map.put(RNTONATIVEMETHOD.blur.name, 1);
     map.put(RNTONATIVEMETHOD.insertEmoji.name, 2);
     map.put(RNTONATIVEMETHOD.insertMentions.name, 3);
@@ -178,7 +179,7 @@ public class VariableTextInputViewManager extends SimpleViewManager<VariableText
   public void receiveCommand(VariableTextInput root, int commandId, @Nullable ReadableArray args) {
 
     switch (commandId){
-      case 0:
+      case 5:
         //focus打开键盘
         root.focus();
         break;

@@ -199,6 +199,8 @@ public class VariableTextInput extends LinearLayout {
 
   public void focus() {
     editText.requestFocus();
+    InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+    imm.showSoftInput(editText,InputMethodManager.SHOW_IMPLICIT);
   }
 
   public void blur() {
