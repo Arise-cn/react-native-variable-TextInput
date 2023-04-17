@@ -36,13 +36,13 @@ public class VariableEditText extends AppCompatEditText {
     switch (id) {
       case android.R.id.cut:
         mOnMenuItemCallBack.onCut();
-        break;
+        return true;
       case android.R.id.copy:
         mOnMenuItemCallBack.onCopy();
-        break;
+        return true;
       case android.R.id.paste:
         mOnMenuItemCallBack.onPaste();
-        break;
+        return true;
     }
     return super.onTextContextMenuItem(id);
   }
