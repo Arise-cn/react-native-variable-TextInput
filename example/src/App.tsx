@@ -16,6 +16,7 @@ import VariableTextInputView, {
 export const App = () => {
   const inPutRef = React.createRef<IATTextViewBase>();
   const onChangeText = (text: string) => {
+    console.log('输入框数据====>', text);
     const triggerRegEx = /({([^{^}]*)}\[([^[]*)]\(([^(^)]*)\))/gi;
     const singleGroupTriggerRegEx = /({[^{^}]*}\[[^[]*]\([^(^)]*\))/gi;
     const matchStr = text.match(triggerRegEx);
@@ -23,7 +24,7 @@ export const App = () => {
       const subStrArr = text.split(triggerRegEx);
       subStrArr.forEach((item) => {
         const arr = item.match(singleGroupTriggerRegEx);
-        console.log('====>', arr);
+        console.log('==处理后的数据==>', arr);
       });
     }
   };
@@ -42,9 +43,9 @@ export const App = () => {
   };
   const insertMonthons = () => {
     inPutRef.current?.insertMentions({
-      tag: '#',
-      name: '测试tag',
-      color: 'red',
+      tag: '@',
+      name: 'James Harden',
+      color: '#CEDA39',
       id: '123344',
       type: ITextType.tagText,
     });
@@ -57,7 +58,7 @@ export const App = () => {
     const tagData: IInserTextAttachmentItem = {
       tag: '#',
       name: '测试tag',
-      color: 'red',
+      color: '#CEDA39',
       id: '123344',
       type: ITextType.tagText,
     };
@@ -65,6 +66,16 @@ export const App = () => {
       { type: 0, text: '普通字符' },
       { type: 1, ...emojiData },
       tagData,
+      { type: 0, text: '普通字符' },
+      tagData,
+      { type: 1, ...emojiData },
+      { type: 0, text: '普通字符' },
+      tagData,
+      { type: 0, text: '普通字符' },
+      tagData,
+      { type: 1, ...emojiData },
+      { type: 1, ...emojiData },
+      { type: 1, ...emojiData },
     ]);
   };
   const focus = () => {
@@ -120,7 +131,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   box: {
-    backgroundColor: 'blue',
+    backgroundColor: '#000',
     color: '#fff',
     fontSize: 14,
     width: '100%',
