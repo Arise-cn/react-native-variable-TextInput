@@ -4,7 +4,7 @@ custom emoji textInput mentions which works both ios and Android
 
 ## Demonstration
 
-<img src="./gifs/demo.gif?raw=true" width="40%">
+<img src="./gifs/demo.gif?raw=true" width="20%">
 
 ## Key features
 
