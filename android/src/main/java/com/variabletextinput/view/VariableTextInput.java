@@ -86,6 +86,7 @@ public class VariableTextInput extends LinearLayout {
       @Override
       public void beforeTextChanged(CharSequence s, int start, int count, int after) {
         mPreviousText = s.toString();
+        mSpanLength = -1;
         if (start == 0 || editText.getText() == null) return;
         if (count > after) {
           TextSpan[] spans = editText.getText().getSpans(start + count, start + count, TextSpan.class);
@@ -220,6 +221,7 @@ public class VariableTextInput extends LinearLayout {
         int spanStart = mEditable.getSpanStart(span);
         int spanEnd = mEditable.getSpanEnd(span);
         mEditable.replace(spanStart, spanEnd, text);
+        mEditable.removeSpan(span);
       }
       return mEditable;
     }
