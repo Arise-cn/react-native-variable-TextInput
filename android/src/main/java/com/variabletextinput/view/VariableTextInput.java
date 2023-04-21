@@ -57,6 +57,7 @@ public class VariableTextInput extends LinearLayout {
   private Context mContext;
   private SpannableString mSpannableString;
   private Editable mEditable;
+
   public VariableTextInput(Context context) {
     super(context);
     this.mContext = context;
@@ -115,7 +116,7 @@ public class VariableTextInput extends LinearLayout {
           ignoreNextLocalTextChange = false;
           return;
         }
-        if (before == 1 && count == 0 && editText.getText() != null && mSpanLength > -1) {
+        if (before == 1 && count == 0 && editText.getText() != null && mSpanLength > -1 && start - mSpanLength >= 0) {
           int length = mSpanLength;
           mSpanLength = -1;
           editText.getText().replace(start - length, start, "");
@@ -216,9 +217,9 @@ public class VariableTextInput extends LinearLayout {
         if (!TextUtils.isEmpty(span.getRichTextBean().name)) {
           text = span.getRichTextBean().tag + span.getRichTextBean().name;
         }
-        int startIndex = mEditable.getSpanStart(span);
-        int endIndex = mEditable.getSpanEnd(span);
-        mEditable.replace(startIndex, endIndex, text);
+        int spanStart = mEditable.getSpanStart(span);
+        int spanEnd = mEditable.getSpanEnd(span);
+        mEditable.replace(spanStart, spanEnd, text);
       }
       return mEditable;
     }
@@ -289,7 +290,7 @@ public class VariableTextInput extends LinearLayout {
   public void focus() {
     editText.requestFocus();
     InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-    imm.showSoftInput(editText,InputMethodManager.SHOW_IMPLICIT);
+    imm.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT);
   }
 
   public void blur() {
@@ -429,9 +430,8 @@ public class VariableTextInput extends LinearLayout {
         switch (richTextBean.type) {
           case 0:
             //普通文本
-            if (!TextUtils.isEmpty(richTextBean.text)) {
-              editText.setText(richTextBean.text);
-              editText.setSelection(richTextBean.text.length());
+            if (editText.getText() != null && !TextUtils.isEmpty(richTextBean.text)) {
+              editText.getText().insert(editText.getSelectionStart(), richTextBean.text);
             }
             break;
           case 1:
@@ -486,14 +486,14 @@ public class VariableTextInput extends LinearLayout {
     int endIndex = startIndex + richTextBean.tag.length();
     if (editText.getText() != null) {
       editText.getText().insert(startIndex, richTextBean.tag);
+      Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.kuxiao);
+      TextSpan imageSpan = new TextSpan(mContext, BitmapUtil.setBitmapSize(bitmap, editText.getTextSize()), richTextBean);
+      mSpannableString = SpannableString.valueOf(editText.getText());
+      mSpannableString.setSpan(imageSpan, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+      editText.setText(mSpannableString);
+      editText.setSelection(endIndex);
+      editText.getText().replace(startIndex, endIndex, richTextBean.content);
     }
-    Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.kuxiao);
-    TextSpan imageSpan = new TextSpan(mContext, BitmapUtil.setBitmapSize(bitmap, editText.getTextSize()), richTextBean);
-    mSpannableString = SpannableString.valueOf(editText.getText());
-    mSpannableString.setSpan(imageSpan, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-    editText.setText(mSpannableString);
-    editText.setSelection(endIndex);
-    editText.getText().replace(startIndex, endIndex, richTextBean.content);
   }
 
   private void insertMentions(RichTextBean richTextBean) {
@@ -501,14 +501,14 @@ public class VariableTextInput extends LinearLayout {
     int endIndex = startIndex + richTextBean.tag.length() + richTextBean.name.length();
     if (editText.getText() != null) {
       editText.getText().insert(startIndex, richTextBean.tag + richTextBean.name);
+      Bitmap bitmap = BitmapUtil.getTextBitmap(richTextBean.tag + richTextBean.name, editText.getTypeface(), editText.getTextSize(), richTextBean.color);
+      TextSpan textSpan = new TextSpan(mContext, bitmap, richTextBean);
+      mSpannableString = SpannableString.valueOf(editText.getText());
+      mSpannableString.setSpan(textSpan, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+      editText.setText(mSpannableString);
+      editText.setSelection(endIndex);
+      editText.getText().replace(startIndex, endIndex, richTextBean.content);
     }
-    Bitmap bitmap = BitmapUtil.getTextBitmap(richTextBean.tag + richTextBean.name, editText.getTypeface(), editText.getTextSize(), richTextBean.color);
-    TextSpan textSpan = new TextSpan(mContext, bitmap, richTextBean);
-    mSpannableString = SpannableString.valueOf(editText.getText());
-    mSpannableString.setSpan(textSpan, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-    editText.setText(mSpannableString);
-    editText.setSelection(endIndex);
-    editText.getText().replace(startIndex, endIndex, richTextBean.content);
   }
 }
 
