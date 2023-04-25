@@ -36,6 +36,7 @@ export const App = () => {
       img: data,
       emojiTag: '[苦笑]',
       type: ITextType.emoji,
+      emojiUri: data.uri,
     });
   };
   const blur = () => {
@@ -54,7 +55,12 @@ export const App = () => {
     const imageData: ImageResolvedAssetSource = Image.resolveAssetSource(
       require('./[苦笑].png')
     );
-    const emojiData = { img: imageData, emojiTag: '[苦笑]' };
+    const emojiData: IInserTextAttachmentItem = {
+      img: imageData,
+      emojiTag: '[苦笑]',
+      type: 1,
+      emojiUri: imageData.uri,
+    };
     const tagData: IInserTextAttachmentItem = {
       tag: '#',
       name: '测试tag',
@@ -64,18 +70,18 @@ export const App = () => {
     };
     inPutRef.current?.changeAttributedText([
       { type: 0, text: '普通字符' },
-      { type: 1, ...emojiData },
+      emojiData,
       tagData,
       { type: 0, text: '普通字符' },
       tagData,
-      { type: 1, ...emojiData },
+      emojiData,
       { type: 0, text: '普通字符' },
       tagData,
       { type: 0, text: '普通字符' },
       tagData,
-      { type: 1, ...emojiData },
-      { type: 1, ...emojiData },
-      { type: 1, ...emojiData },
+      emojiData,
+      emojiData,
+      emojiData,
     ]);
   };
   const focus = () => {

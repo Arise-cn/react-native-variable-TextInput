@@ -8,4 +8,5 @@ public class ActivityConst {
   public static final String TEXT = "text";
   public static final String TYPE = "type";
   public static final String EMOJI_TAG = "emojiTag";
+  public static final String EMOJI_URI = "emojiUri";
 }

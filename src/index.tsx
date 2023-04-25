@@ -54,6 +54,7 @@ export interface IInserTextAttachmentItem {
   id?: string;
   img?: ImageResolvedAssetSource; //emoji图片
   emojiTag?: string; //[微笑] //emojitag
+  emojiUri?: string;
 }
 interface IProps {
   onMention?: () => void;

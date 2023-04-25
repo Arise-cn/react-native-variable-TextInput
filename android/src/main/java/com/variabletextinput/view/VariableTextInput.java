@@ -47,13 +47,16 @@ import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
 import androidx.core.content.ContextCompat;
 
+import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 public class VariableTextInput extends LinearLayout {
   private VariableEditText editText;
   private ScrollView scrollView;
   private Boolean ignoreNextLocalTextChange = false;
-
+  private Bitmap imgBitmap = null;
   private Context mContext;
   private SpannableString mSpannableString;
   private Editable mEditable;
@@ -478,22 +481,71 @@ public class VariableTextInput extends LinearLayout {
     if (map.hasKey(ActivityConst.TEXT)) {
       richTextBean.text = map.getString(ActivityConst.TEXT);
     }
+    if (map.hasKey(ActivityConst.EMOJI_URI)){
+      richTextBean.emojiUri = map.getString(ActivityConst.EMOJI_URI);
+    }
     return richTextBean;
   }
+  /**
+   * 通过 网络图片 url 获取图片BitMap
+   * @param photoUrl 网络图片 url
+   */
+  private void requestWebPhotoBitMap(String photoUrl){
+    new Thread(()->{
+      HttpURLConnection connection = null;
+      try {
+        URL bitmapUrl = new URL(photoUrl);
+        connection = (HttpURLConnection) bitmapUrl.openConnection();
+        connection.setRequestMethod("GET");
+        connection.setConnectTimeout(5000);
+        connection.setReadTimeout(5000);
+        // 判断是否请求成功
+        if (connection.getResponseCode() == 200) {
 
+          InputStream inputStream = connection.getInputStream();
+          imgBitmap = BitmapFactory.decodeStream(inputStream);
+
+        } else {
+          //todo
+        }
+      }catch (Exception e){
+        //todo
+      }
+    }).start();
+  }
   public void insertEmoji(RichTextBean richTextBean) {
     int startIndex = editText.getSelectionStart();
     int endIndex = startIndex + richTextBean.tag.length();
-    if (editText.getText() != null) {
-      editText.getText().insert(startIndex, richTextBean.tag);
-    }
-    Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.kuxiao);
-    TextSpan imageSpan = new TextSpan(mContext, BitmapUtil.setBitmapSize(bitmap, editText.getTextSize()), richTextBean);
-    mSpannableString = SpannableString.valueOf(editText.getText());
-    mSpannableString.setSpan(imageSpan, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-    editText.setText(mSpannableString);
-    editText.setSelection(endIndex);
-    editText.getText().replace(startIndex, endIndex, richTextBean.content);
+//    Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.kuxiao);
+    new Thread(()->{
+      try {
+        Bitmap iBitMap;
+        if (richTextBean.emojiUri.startsWith("http")){
+          String imgUrl = richTextBean.emojiUri;
+          URL url = new URL(imgUrl);
+          HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+          connection.setDoInput(true);
+          connection.connect();
+          InputStream input = connection.getInputStream();
+          iBitMap = BitmapFactory.decodeStream(input);
+        }else {
+          iBitMap = BitmapFactory.decodeFile(richTextBean.emojiUri);
+        }
+        if (editText.getText() != null) {
+          editText.getText().insert(startIndex, richTextBean.tag);
+        }
+        TextSpan imageSpan = new TextSpan(mContext, BitmapUtil.setBitmapSize(iBitMap, editText.getTextSize()), richTextBean);
+        mSpannableString = SpannableString.valueOf(editText.getText());
+        mSpannableString.setSpan(imageSpan, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        editText.setText(mSpannableString);
+        editText.setSelection(endIndex);
+        editText.getText().replace(startIndex, endIndex, richTextBean.content);
+      }catch (Exception e){
+        //todo
+        Log.d("错误", "insertEmoji: "+e);
+      }
+    }).start();
+
   }
 
   private void insertMentions(RichTextBean richTextBean) {
