@@ -10,6 +10,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Build;
 import android.text.Editable;
 import android.text.SpannableString;
@@ -45,11 +46,14 @@ import com.variabletextinput.widget.TextSpan;
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
+import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 
 public class VariableTextInput extends LinearLayout {
@@ -60,6 +64,7 @@ public class VariableTextInput extends LinearLayout {
   private Context mContext;
   private SpannableString mSpannableString;
   private Editable mEditable;
+
   public VariableTextInput(Context context) {
     super(context);
     this.mContext = context;
@@ -70,11 +75,14 @@ public class VariableTextInput extends LinearLayout {
     editText = new VariableEditText(context);
     editText.setLayoutParams(new ScrollView.LayoutParams(MATCH_PARENT, WRAP_CONTENT));
     editText.setGravity(Gravity.TOP);
-    editText.setInputType(editText.getInputType() | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+    editText.setInputType(editText.getInputType() | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+        | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
     editText.setPadding(0, 0, 0, 0);
-    // This was used in conjunction with setting raw input type for selecting lock notes.
+    // This was used in conjunction with setting raw input type for selecting lock
+    // notes.
     // However, it causes the keyboard to not come up for editing existing notes.
-    // Tested while offline using brand new installation on Android 6 emulator, but a user with Android 7 also reported it.
+    // Tested while offline using brand new installation on Android 6 emulator, but
+    // a user with Android 7 also reported it.
     // editText.setTextIsSelectable(true);
     scrollView.addView(editText);
     this.addView(scrollView);
@@ -88,13 +96,17 @@ public class VariableTextInput extends LinearLayout {
       @Override
       public void beforeTextChanged(CharSequence s, int start, int count, int after) {
         mPreviousText = s.toString();
-        if (start == 0 || editText.getText() == null) return;
+        mSpanLength = -1;
+        if (start == 0 || editText.getText() == null)
+          return;
         if (count > after) {
           TextSpan[] spans = editText.getText().getSpans(start + count, start + count, TextSpan.class);
-          if (spans == null || spans.length == 0) return;
+          if (spans == null || spans.length == 0)
+            return;
           for (TextSpan span : spans) {
             int endSpanIndex = editText.getText().getSpanEnd(span);
-            if (endSpanIndex != start + count) continue;
+            if (endSpanIndex != start + count)
+              continue;
             mSpanLength = span.getRichTextBean().content.length() - 1;
             editText.getText().removeSpan(span);
           }
@@ -103,8 +115,10 @@ public class VariableTextInput extends LinearLayout {
 
       @Override
       public void onTextChanged(CharSequence s, int start, int before, int count) {
-        // Rearranging the text (i.e. changing between singleline and multiline attributes) can
-        // also trigger onTextChanged, call the event in JS only when the text actually changed
+        // Rearranging the text (i.e. changing between singleline and multiline
+        // attributes) can
+        // also trigger onTextChanged, call the event in JS only when the text actually
+        // changed
         if (count == 0 && before == 0) {
           return;
         }
@@ -118,7 +132,7 @@ public class VariableTextInput extends LinearLayout {
           ignoreNextLocalTextChange = false;
           return;
         }
-        if (before == 1 && count == 0 && editText.getText() != null && mSpanLength > -1) {
+        if (before == 1 && count == 0 && editText.getText() != null && mSpanLength > -1 && start - mSpanLength >= 0) {
           int length = mSpanLength;
           mSpanLength = -1;
           editText.getText().replace(start - length, start, "");
@@ -149,7 +163,8 @@ public class VariableTextInput extends LinearLayout {
           final Context context = getContext();
           if (context instanceof ReactContext) {
             Log.d("输入框高度", "afterTextChanged: " + event);
-            ((ReactContext) context).getJSModule(RCTEventEmitter.class).receiveEvent(getId(), "onAndroidContentSizeChange", event);
+            ((ReactContext) context).getJSModule(RCTEventEmitter.class).receiveEvent(getId(),
+                "onAndroidContentSizeChange", event);
           }
         }
       }
@@ -170,7 +185,7 @@ public class VariableTextInput extends LinearLayout {
 
       @Override
       public void onPaste() {
-//        Log.e("onPaste", "执行onPaste方法--->" + mEditable);
+        // Log.e("onPaste", "执行onPaste方法--->" + mEditable);
         if (editText.getText() != null && mEditable != null) {
           editText.getText().insert(editText.getSelectionStart(), mEditable);
         }
@@ -184,7 +199,7 @@ public class VariableTextInput extends LinearLayout {
           for (int i = size - 1; i >= 0; i--) {
             int itemId = menu.getItem(i).getItemId();
             if (itemId != android.R.id.cut && itemId != android.R.id.copy
-              && itemId != android.R.id.selectAll && itemId != android.R.id.paste) {
+                && itemId != android.R.id.selectAll && itemId != android.R.id.paste) {
               menu.removeItem(itemId);
             }
           }
@@ -211,24 +226,27 @@ public class VariableTextInput extends LinearLayout {
 
   private Editable handleSelectData() {
     if (editText.getText() != null) {
-      mEditable = Editable.Factory.getInstance().newEditable(editText.getText().subSequence(editText.getSelectionStart(), editText.getSelectionEnd()));
+      mEditable = Editable.Factory.getInstance()
+          .newEditable(editText.getText().subSequence(editText.getSelectionStart(), editText.getSelectionEnd()));
       TextSpan[] spans = mEditable.getSpans(0, mEditable.length(), TextSpan.class);
-      if (spans == null || spans.length == 0) return null;
+      if (spans == null || spans.length == 0)
+        return null;
       for (TextSpan span : spans) {
         String text = span.getRichTextBean().tag;
         if (!TextUtils.isEmpty(span.getRichTextBean().name)) {
           text = span.getRichTextBean().tag + span.getRichTextBean().name;
         }
-        int startIndex = mEditable.getSpanStart(span);
-        int endIndex = mEditable.getSpanEnd(span);
-        mEditable.replace(startIndex, endIndex, text);
+        int spanStart = mEditable.getSpanStart(span);
+        int spanEnd = mEditable.getSpanEnd(span);
+        mEditable.replace(spanStart, spanEnd, text);
+        mEditable.removeSpan(span);
       }
       return mEditable;
     }
     return null;
   }
 
-  //处理粘贴板数据
+  // 处理粘贴板数据
   private void handleClipBoardData(Editable editable) {
     if (editable != null && editable.length() > 0) {
       ClipboardManager clipboardManager = (ClipboardManager) mContext.getSystemService(Context.CLIPBOARD_SERVICE);
@@ -252,8 +270,10 @@ public class VariableTextInput extends LinearLayout {
 
   public void setText(String text) {
     // Fix for issue where first character typed does not trigger save event.
-    // setText is called with an empty string originally as soon as the text view is initialized.
-    // Thus, ignoreNextLocalTextChange would be set to true, and would ignore the first character typed.
+    // setText is called with an empty string originally as soon as the text view is
+    // initialized.
+    // Thus, ignoreNextLocalTextChange would be set to true, and would ignore the
+    // first character typed.
     boolean isEmpty = text == null || text.trim().length() == 0;
     ignoreNextLocalTextChange = !isEmpty;
     editText.setText(text);
@@ -268,23 +288,32 @@ public class VariableTextInput extends LinearLayout {
   }
 
   public void setEditable(boolean editable) {
-        /*
-            setRawInputType is the only solution that works for keeping the text selectable while disabled
-            previously we used setEnabled(false), but this would make text unselectable when the note is locked.
-            setInputType(null) also doesn't work because it removes the multiline functionality.
-            With setRawInputType, the keyboard doesn't come up, but if you're using a hardware keyboard,
-            changes will still be received. So we combine the below with javascript side lock checking to decline
-            any physical changes.
-            editText.setTextIsSelectable is also required for this to work, which is set at setup
-            Update: setTextIsSelectable causes keyboard to not come up. Go back to setEnabled
-            until we can determine a different solution
-            Previous solution for selecting locked notes:
-            if(!editable) {
-              editText.setRawInputType(InputType.TYPE_NULL);
-            } else {
-            editText.setRawInputType(editText.getInputType() | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
-            }
-         */
+    /*
+     * setRawInputType is the only solution that works for keeping the text
+     * selectable while disabled
+     * previously we used setEnabled(false), but this would make text unselectable
+     * when the note is locked.
+     * setInputType(null) also doesn't work because it removes the multiline
+     * functionality.
+     * With setRawInputType, the keyboard doesn't come up, but if you're using a
+     * hardware keyboard,
+     * changes will still be received. So we combine the below with javascript side
+     * lock checking to decline
+     * any physical changes.
+     * editText.setTextIsSelectable is also required for this to work, which is set
+     * at setup
+     * Update: setTextIsSelectable causes keyboard to not come up. Go back to
+     * setEnabled
+     * until we can determine a different solution
+     * Previous solution for selecting locked notes:
+     * if(!editable) {
+     * editText.setRawInputType(InputType.TYPE_NULL);
+     * } else {
+     * editText.setRawInputType(editText.getInputType() |
+     * InputType.TYPE_TEXT_FLAG_CAP_SENTENCES |
+     * InputType.TYPE_TEXT_FLAG_AUTO_CORRECT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+     * }
+     */
     editText.setEnabled(editable);
 
   }
@@ -292,7 +321,7 @@ public class VariableTextInput extends LinearLayout {
   public void focus() {
     editText.requestFocus();
     InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-    imm.showSoftInput(editText,InputMethodManager.SHOW_IMPLICIT);
+    imm.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT);
   }
 
   public void blur() {
@@ -321,11 +350,13 @@ public class VariableTextInput extends LinearLayout {
     if (position == Spacing.ALL) {
       editText.setPadding(pixels, pixels, pixels, pixels);
     } else if (position == Spacing.LEFT) {
-      editText.setPadding(pixels, editText.getTotalPaddingTop(), editText.getPaddingRight(), editText.getPaddingBottom());
+      editText.setPadding(pixels, editText.getTotalPaddingTop(), editText.getPaddingRight(),
+          editText.getPaddingBottom());
     } else if (position == Spacing.TOP) {
       editText.setPadding(editText.getPaddingLeft(), pixels, editText.getPaddingRight(), editText.getPaddingBottom());
     } else if (position == Spacing.RIGHT) {
-      editText.setPadding(editText.getPaddingLeft(), editText.getTotalPaddingTop(), pixels, editText.getPaddingBottom());
+      editText.setPadding(editText.getPaddingLeft(), editText.getTotalPaddingTop(), pixels,
+          editText.getPaddingBottom());
     } else if (position == Spacing.BOTTOM) {
       editText.setPadding(editText.getPaddingLeft(), editText.getTotalPaddingTop(), editText.getPaddingRight(), pixels);
     }
@@ -352,7 +383,7 @@ public class VariableTextInput extends LinearLayout {
       // Get the drawable and set a color filter
       Drawable drawable = ContextCompat.getDrawable(editText.getContext(), drawableResId);
       drawable.setColorFilter(color, PorterDuff.Mode.SRC_IN);
-      Drawable[] drawables = {drawable, drawable};
+      Drawable[] drawables = { drawable, drawable };
 
       // Set the drawables
       field = editor.getClass().getDeclaredField("mCursorDrawable");
@@ -373,8 +404,8 @@ public class VariableTextInput extends LinearLayout {
       Object editor = editorField.get(editText);
       Class<?> editorClass = editor.getClass();
 
-      String[] handleNames = {"mSelectHandleLeft", "mSelectHandleRight", "mSelectHandleCenter"};
-      String[] resNames = {"mTextSelectHandleLeftRes", "mTextSelectHandleRightRes", "mTextSelectHandleRes"};
+      String[] handleNames = { "mSelectHandleLeft", "mSelectHandleRight", "mSelectHandleCenter" };
+      String[] resNames = { "mTextSelectHandleLeftRes", "mTextSelectHandleRightRes", "mTextSelectHandleRes" };
 
       for (int i = 0; i < handleNames.length; i++) {
         Field handleField = editorClass.getDeclaredField(handleNames[i]);
@@ -421,7 +452,8 @@ public class VariableTextInput extends LinearLayout {
     if (editText.getTypeface() != null) {
       style = editText.getTypeface().getStyle();
     }
-    Typeface newTypeFace = ReactFontManager.getInstance().getTypeface(fontFamily, style, editText.getContext().getAssets());
+    Typeface newTypeFace = ReactFontManager.getInstance().getTypeface(fontFamily, style,
+        editText.getContext().getAssets());
     editText.setTypeface(newTypeFace);
   }
 
@@ -431,18 +463,17 @@ public class VariableTextInput extends LinearLayout {
         RichTextBean richTextBean = handleParams(args.getMap(i));
         switch (richTextBean.type) {
           case 0:
-            //普通文本
-            if (!TextUtils.isEmpty(richTextBean.text)) {
-              editText.setText(richTextBean.text);
-              editText.setSelection(richTextBean.text.length());
+            // 普通文本
+            if (editText.getText() != null && !TextUtils.isEmpty(richTextBean.text)) {
+              editText.getText().insert(editText.getSelectionStart(), richTextBean.text);
             }
             break;
           case 1:
-            //自定义表情
+            // 自定义表情
             insertEmoji(richTextBean);
             break;
           case 2:
-            //@或者#话题
+            // @或者#话题
             insertMentions(richTextBean);
             break;
           default:
@@ -470,9 +501,10 @@ public class VariableTextInput extends LinearLayout {
     if (map.hasKey(ActivityConst.NAME)) {
       String name = map.getString(ActivityConst.NAME);
       richTextBean.name = name + " ";
-      //插入@或者#
+      // 插入@或者#
       if (richTextBean.type == 2) {
-        richTextBean.content = String.format(mContext.getString(R.string.insert_mention), richTextBean.tag, name, richTextBean.id);
+        richTextBean.content = String.format(mContext.getString(R.string.insert_mention), richTextBean.tag, name,
+            richTextBean.id);
       }
     }
     if (map.hasKey(ActivityConst.COLOR)) {
@@ -481,71 +513,48 @@ public class VariableTextInput extends LinearLayout {
     if (map.hasKey(ActivityConst.TEXT)) {
       richTextBean.text = map.getString(ActivityConst.TEXT);
     }
-    if (map.hasKey(ActivityConst.EMOJI_URI)){
+    if (map.hasKey(ActivityConst.EMOJI_URI)) {
       richTextBean.emojiUri = map.getString(ActivityConst.EMOJI_URI);
     }
     return richTextBean;
   }
-  /**
-   * 通过 网络图片 url 获取图片BitMap
-   * @param photoUrl 网络图片 url
-   */
-  private void requestWebPhotoBitMap(String photoUrl){
+  public void getNetWorkBitMap(RichTextBean richTextBean){
     new Thread(()->{
-      HttpURLConnection connection = null;
+      Bitmap bitmap;
       try {
-        URL bitmapUrl = new URL(photoUrl);
-        connection = (HttpURLConnection) bitmapUrl.openConnection();
-        connection.setRequestMethod("GET");
-        connection.setConnectTimeout(5000);
-        connection.setReadTimeout(5000);
-        // 判断是否请求成功
-        if (connection.getResponseCode() == 200) {
-
-          InputStream inputStream = connection.getInputStream();
-          imgBitmap = BitmapFactory.decodeStream(inputStream);
-
-        } else {
-          //todo
-        }
+        URL url = new URL(richTextBean.emojiUri);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        InputStream input = connection.getInputStream();
+        bitmap = BitmapFactory.decodeStream(input);
+        connection.disconnect();
+        bitmapToInput(bitmap,richTextBean);
       }catch (Exception e){
         //todo
       }
     }).start();
   }
-  public void insertEmoji(RichTextBean richTextBean) {
+  @NonNull
+  public void bitmapToInput(Bitmap bitmap,RichTextBean richTextBean){
     int startIndex = editText.getSelectionStart();
     int endIndex = startIndex + richTextBean.tag.length();
-//    Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.kuxiao);
-    new Thread(()->{
-      try {
-        Bitmap iBitMap;
-        if (richTextBean.emojiUri.startsWith("http")){
-          String imgUrl = richTextBean.emojiUri;
-          URL url = new URL(imgUrl);
-          HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-          connection.setDoInput(true);
-          connection.connect();
-          InputStream input = connection.getInputStream();
-          iBitMap = BitmapFactory.decodeStream(input);
-        }else {
-          iBitMap = BitmapFactory.decodeFile(richTextBean.emojiUri);
-        }
-        if (editText.getText() != null) {
-          editText.getText().insert(startIndex, richTextBean.tag);
-        }
-        TextSpan imageSpan = new TextSpan(mContext, BitmapUtil.setBitmapSize(iBitMap, editText.getTextSize()), richTextBean);
-        mSpannableString = SpannableString.valueOf(editText.getText());
-        mSpannableString.setSpan(imageSpan, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        editText.setText(mSpannableString);
-        editText.setSelection(endIndex);
-        editText.getText().replace(startIndex, endIndex, richTextBean.content);
-      }catch (Exception e){
-        //todo
-        Log.d("错误", "insertEmoji: "+e);
-      }
-    }).start();
-
+    if (editText.getText() != null) {
+      editText.getText().insert(startIndex, richTextBean.tag);
+      TextSpan imageSpan = new TextSpan(mContext, BitmapUtil.setBitmapSize(bitmap, editText.getTextSize()), richTextBean);
+      mSpannableString = SpannableString.valueOf(editText.getText());
+      mSpannableString.setSpan(imageSpan, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+      editText.setText(mSpannableString);
+      editText.setSelection(endIndex);
+      editText.getText().replace(startIndex, endIndex, richTextBean.content);
+    }
+  }
+  public void insertEmoji(RichTextBean richTextBean)  {
+    if (richTextBean.emojiUri.startsWith("http")){
+      getNetWorkBitMap(richTextBean);
+    } else {
+      Uri uri = Uri.parse(richTextBean.emojiUri);
+      Bitmap bitmap =  BitmapFactory.decodeFile(uri.getPath());
+      bitmapToInput(bitmap,richTextBean);
+    }
   }
 
   private void insertMentions(RichTextBean richTextBean) {
@@ -553,14 +562,14 @@ public class VariableTextInput extends LinearLayout {
     int endIndex = startIndex + richTextBean.tag.length() + richTextBean.name.length();
     if (editText.getText() != null) {
       editText.getText().insert(startIndex, richTextBean.tag + richTextBean.name);
+      Bitmap bitmap = BitmapUtil.getTextBitmap(richTextBean.tag + richTextBean.name, editText.getTypeface(),
+          editText.getTextSize(), richTextBean.color);
+      TextSpan textSpan = new TextSpan(mContext, bitmap, richTextBean);
+      mSpannableString = SpannableString.valueOf(editText.getText());
+      mSpannableString.setSpan(textSpan, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+      editText.setText(mSpannableString);
+      editText.setSelection(endIndex);
+      editText.getText().replace(startIndex, endIndex, richTextBean.content);
     }
-    Bitmap bitmap = BitmapUtil.getTextBitmap(richTextBean.tag + richTextBean.name, editText.getTypeface(), editText.getTextSize(), richTextBean.color);
-    TextSpan textSpan = new TextSpan(mContext, bitmap, richTextBean);
-    mSpannableString = SpannableString.valueOf(editText.getText());
-    mSpannableString.setSpan(textSpan, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-    editText.setText(mSpannableString);
-    editText.setSelection(endIndex);
-    editText.getText().replace(startIndex, endIndex, richTextBean.content);
   }
 }
-
