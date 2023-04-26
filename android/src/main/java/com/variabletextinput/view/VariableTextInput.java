@@ -527,9 +527,14 @@ public class VariableTextInput extends LinearLayout {
         InputStream input = connection.getInputStream();
         bitmap = BitmapFactory.decodeStream(input);
         connection.disconnect();
-        bitmapToInput(bitmap,richTextBean);
+        editText.post(new Runnable() {
+          @Override
+          public void run() {
+            bitmapToInput(bitmap, richTextBean);
+          }
+        });
       }catch (Exception e){
-        //todo
+        e.printStackTrace();
       }
     }).start();
   }
