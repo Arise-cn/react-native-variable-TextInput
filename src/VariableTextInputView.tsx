@@ -227,4 +227,4 @@ const VariableTextInputView = forwardRef(
 const RNTVariableTextInputView = requireNativeComponent<IProps>(
   'VariableTextInputView'
 );
-export default VariableTextInputView;
+export { VariableTextInputView };

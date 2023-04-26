@@ -8,10 +8,11 @@ import {
   Image,
   View,
 } from 'react-native';
-import VariableTextInputView, {
+import {
   IATTextViewBase,
   IInserTextAttachmentItem,
   ITextType,
+  VariableTextInputView,
 } from 'react-native-variable-text-input';
 export const App = () => {
   const inPutRef = React.createRef<IATTextViewBase>();
