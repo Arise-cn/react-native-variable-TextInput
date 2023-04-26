@@ -31,7 +31,7 @@ export const App = () => {
   };
   const insertEmoji = () => {
     const data: ImageResolvedAssetSource = Image.resolveAssetSource(
-      require('./[苦笑].png')
+      require('./kuxiao.png')
     );
     inPutRef.current?.insertEmoji({
       img: data,
@@ -54,7 +54,7 @@ export const App = () => {
   };
   const changeAttributedText = () => {
     const imageData: ImageResolvedAssetSource = Image.resolveAssetSource(
-      require('./[苦笑].png')
+      require('./kuxiao.png')
     );
     const emojiData: IInserTextAttachmentItem = {
       img: imageData,

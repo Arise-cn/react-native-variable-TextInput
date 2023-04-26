@@ -556,8 +556,8 @@ public class VariableTextInput extends LinearLayout {
     if (richTextBean.emojiUri.startsWith("http")){
       getNetWorkBitMap(richTextBean);
     } else {
-      Uri uri = Uri.parse(richTextBean.emojiUri);
-      Bitmap bitmap =  BitmapFactory.decodeFile(uri.getPath());
+      int resourceId =  mContext.getResources().getIdentifier(richTextBean.emojiUri,"drawable",mContext.getPackageName());
+      Bitmap bitmap =BitmapFactory.decodeResource(getResources(),resourceId);
       bitmapToInput(bitmap,richTextBean);
     }
   }
