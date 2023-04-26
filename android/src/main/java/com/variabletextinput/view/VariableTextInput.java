@@ -544,12 +544,14 @@ public class VariableTextInput extends LinearLayout {
     int endIndex = startIndex + richTextBean.tag.length();
     if (editText.getText() != null) {
       editText.getText().insert(startIndex, richTextBean.tag);
-      TextSpan imageSpan = new TextSpan(mContext, BitmapUtil.setBitmapSize(bitmap, editText.getTextSize()), richTextBean);
-      mSpannableString = SpannableString.valueOf(editText.getText());
-      mSpannableString.setSpan(imageSpan, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-      editText.setText(mSpannableString);
-      editText.setSelection(endIndex);
-      editText.getText().replace(startIndex, endIndex, richTextBean.content);
+      if (bitmap != null) {
+        mSpannableString = SpannableString.valueOf(editText.getText());
+        TextSpan imageSpan = new TextSpan(mContext, BitmapUtil.setBitmapSize(bitmap, editText.getTextSize()), richTextBean);
+        mSpannableString.setSpan(imageSpan, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        editText.setText(mSpannableString);
+        editText.setSelection(endIndex);
+        editText.getText().replace(startIndex, endIndex, richTextBean.content);
+      }
     }
   }
   public void insertEmoji(RichTextBean richTextBean)  {
