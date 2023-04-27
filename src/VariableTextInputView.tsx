@@ -165,7 +165,7 @@ const VariableTextInputView = forwardRef(
     const onContentSizeChange = (event: any) => {
       const { style } = props;
       const styles = StyleSheet.flatten(style);
-      if (styles.height === undefined && styles.flex !== 1) {
+      if (styles.height === undefined) {
         const contentSizeHeight = event.nativeEvent.contentSize.height;
         if (!!styles.maxHeight && contentSizeHeight >= styles.maxHeight) {
           setCurrentHeight(parseFloat(`${styles.maxHeight}`));
@@ -181,7 +181,7 @@ const VariableTextInputView = forwardRef(
     const onAndroidContentSizeChange = (event: any) => {
       const { style } = props;
       const styles = StyleSheet.flatten(style);
-      if (styles.height === undefined && styles.flex !== 1) {
+      if (styles.height === undefined) {
         const contentSizeHeight = event.nativeEvent.contentSize.height;
         if (!!styles.maxHeight && contentSizeHeight > styles.maxHeight) {
           setCurrentHeight(parseFloat(`${styles.maxHeight}`));
