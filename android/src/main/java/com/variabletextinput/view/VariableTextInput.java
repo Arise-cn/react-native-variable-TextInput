@@ -10,8 +10,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.ShapeDrawable;
-import android.net.Uri;
 import android.os.Build;
 import android.text.Editable;
 import android.text.InputFilter;
@@ -40,7 +38,6 @@ import com.facebook.react.uimanager.Spacing;
 import com.facebook.react.uimanager.events.RCTEventEmitter;
 import com.facebook.react.views.text.ReactFontManager;
 import com.facebook.react.views.view.ReactViewBackgroundDrawable;
-import com.facebook.react.views.view.ReactViewBackgroundManager;
 import com.variabletextinput.R;
 import com.variabletextinput.bean.RichTextBean;
 import com.variabletextinput.util.ActivityConst;
@@ -54,11 +51,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.net.HttpURLConnection;
-import java.net.URI;
 import java.net.URL;
 import java.util.LinkedList;
 
@@ -482,6 +477,9 @@ public class VariableTextInput extends LinearLayout {
   }
   public void setFontSize(Integer fontSize) {
     editText.setTextSize(fontSize);
+  }
+  public void clearText(){
+    editText.setText("");
   }
   public void setMaxLength(@Nullable Integer maxLength){
     InputFilter[] currentFilters = editText.getFilters();

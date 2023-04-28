@@ -300,8 +300,11 @@ public class VariableTextInputViewManager extends SimpleViewManager<VariableText
         break;
       case 2:
       case 3:
+        root.handleRichText(args);
+        break;
       case 4:
         //更改富文本
+        root.clearText();
         root.handleRichText(args);
         break;
       default:
