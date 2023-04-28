@@ -14,6 +14,13 @@
 RCT_EXPORT_MODULE()
 RCT_EXPORT_VIEW_PROPERTY(placeholder, NSString)
 RCT_EXPORT_VIEW_PROPERTY(text, NSString)
+RCT_EXPORT_VIEW_PROPERTY(paddingTop, CGFloat)
+RCT_EXPORT_VIEW_PROPERTY(paddingRight, CGFloat)
+RCT_EXPORT_VIEW_PROPERTY(paddingBottom, CGFloat)
+RCT_EXPORT_VIEW_PROPERTY(paddingLeft, CGFloat)
+RCT_EXPORT_VIEW_PROPERTY(padding, CGFloat)
+RCT_EXPORT_VIEW_PROPERTY(paddingHorizontal, CGFloat)
+RCT_EXPORT_VIEW_PROPERTY(paddingVertical, CGFloat)
 RCT_CUSTOM_VIEW_PROPERTY(placeholderTextColor, UIColor, VariableTextInput)
 {
     [view setValue: [RCTConvert UIColor:json] forKeyPath: @"placeholderTextColor"];

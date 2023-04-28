@@ -10,9 +10,11 @@ import android.graphics.BitmapFactory;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.ShapeDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.text.Editable;
+import android.text.InputFilter;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
@@ -37,6 +39,8 @@ import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.uimanager.Spacing;
 import com.facebook.react.uimanager.events.RCTEventEmitter;
 import com.facebook.react.views.text.ReactFontManager;
+import com.facebook.react.views.view.ReactViewBackgroundDrawable;
+import com.facebook.react.views.view.ReactViewBackgroundManager;
 import com.variabletextinput.R;
 import com.variabletextinput.bean.RichTextBean;
 import com.variabletextinput.util.ActivityConst;
@@ -47,6 +51,7 @@ import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import java.io.IOException;
@@ -55,6 +60,7 @@ import java.lang.reflect.Field;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
+import java.util.LinkedList;
 
 public class VariableTextInput extends LinearLayout {
   private VariableEditText editText;
@@ -64,7 +70,8 @@ public class VariableTextInput extends LinearLayout {
   private Context mContext;
   private SpannableString mSpannableString;
   private Editable mEditable;
-
+  private ReactViewBackgroundDrawable reactViewBackgroundDrawable;
+  private static final InputFilter[] EMPTY_FILTERS = new InputFilter[0];
   public VariableTextInput(Context context) {
     super(context);
     this.mContext = context;
@@ -84,6 +91,11 @@ public class VariableTextInput extends LinearLayout {
     // Tested while offline using brand new installation on Android 6 emulator, but
     // a user with Android 7 also reported it.
     // editText.setTextIsSelectable(true);
+    // 创建 ShapeDrawable 对象，方便设置圆角和边框样式
+//    shapeDrawable = new ShapeDrawable();
+//    editText.setBackground(shapeDrawable);
+    reactViewBackgroundDrawable = new ReactViewBackgroundDrawable(context);
+    editText.setBackground(reactViewBackgroundDrawable);
     scrollView.addView(editText);
     this.addView(scrollView);
     // 添加 TextWatcher 监听器
@@ -223,7 +235,6 @@ public class VariableTextInput extends LinearLayout {
       });
     }
   }
-
   private Editable handleSelectData() {
     if (editText.getText() != null) {
       mEditable = Editable.Factory.getInstance()
@@ -267,7 +278,6 @@ public class VariableTextInput extends LinearLayout {
   protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
     super.onLayout(changed, left, top, right, bottom);
   }
-
   public void setText(String text) {
     // Fix for issue where first character typed does not trigger save event.
     // setText is called with an empty string originally as soon as the text view is
@@ -318,6 +328,10 @@ public class VariableTextInput extends LinearLayout {
 
   }
 
+  public void setBackGroundColor(Integer color){
+    reactViewBackgroundDrawable.setColor(color);
+  }
+
   public void focus() {
     editText.requestFocus();
     InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -361,7 +375,29 @@ public class VariableTextInput extends LinearLayout {
       editText.setPadding(editText.getPaddingLeft(), editText.getTotalPaddingTop(), editText.getPaddingRight(), pixels);
     }
   }
+  public void setBorderWidth(int position, float width) {
+    reactViewBackgroundDrawable.setBorderWidth(position, width);
+  }
 
+  public void setBorderColor(int position, float color, float alpha) {
+    reactViewBackgroundDrawable.setBorderColor(position, color, alpha);
+  }
+
+  public int getBorderColor(int position) {
+    return reactViewBackgroundDrawable.getBorderColor(position);
+  }
+
+  public void setBorderRadius(float borderRadius) {
+    reactViewBackgroundDrawable.setRadius(borderRadius);
+  }
+
+  public void setBorderRadius(float borderRadius, int position) {
+    reactViewBackgroundDrawable.setRadius(borderRadius, position);
+  }
+
+  public void setBorderStyle(@Nullable String style) {
+    reactViewBackgroundDrawable.setBorderStyle(style);
+  }
   public void setTextColor(Integer color) {
     editText.setTextColor(color);
   }
@@ -438,15 +474,55 @@ public class VariableTextInput extends LinearLayout {
   public void setPlaceholder(String placeholder) {
     editText.setHint(placeholder);
   }
-
+  public void setPlaceholderColor(int placeholderColor){
+    editText.setHintTextColor(placeholderColor);
+  }
   public void setUnderLineColorAndroid(Integer color) {
     editText.setBackgroundTintList(ColorStateList.valueOf(color));
   }
-
   public void setFontSize(Integer fontSize) {
     editText.setTextSize(fontSize);
   }
+  public void setMaxLength(@Nullable Integer maxLength){
+    InputFilter[] currentFilters = editText.getFilters();
+    InputFilter[] newFilters = EMPTY_FILTERS;
 
+    if (maxLength == null) {
+      if (currentFilters.length > 0) {
+        LinkedList<InputFilter> list = new LinkedList<>();
+        for (int i = 0; i < currentFilters.length; i++) {
+          if (!(currentFilters[i] instanceof InputFilter.LengthFilter)) {
+            list.add(currentFilters[i]);
+          }
+        }
+        if (!list.isEmpty()) {
+          newFilters = (InputFilter[]) list.toArray(new InputFilter[list.size()]);
+        }
+      }
+    } else {
+      if (currentFilters.length > 0) {
+        newFilters = currentFilters;
+        boolean replaced = false;
+        for (int i = 0; i < currentFilters.length; i++) {
+          if (currentFilters[i] instanceof InputFilter.LengthFilter) {
+            currentFilters[i] = new InputFilter.LengthFilter(maxLength);
+            replaced = true;
+          }
+        }
+        if (!replaced) {
+          newFilters = new InputFilter[currentFilters.length + 1];
+          System.arraycopy(currentFilters, 0, newFilters, 0, currentFilters.length);
+          currentFilters[currentFilters.length] = new InputFilter.LengthFilter(maxLength);
+        }
+      } else {
+        newFilters = new InputFilter[1];
+        newFilters[0] = new InputFilter.LengthFilter(maxLength);
+      }
+    }
+
+    editText.setFilters(newFilters);
+
+  }
   public void setFontFamily(String fontFamily) {
     int style = Typeface.NORMAL;
     if (editText.getTypeface() != null) {
@@ -456,7 +532,6 @@ public class VariableTextInput extends LinearLayout {
         editText.getContext().getAssets());
     editText.setTypeface(newTypeFace);
   }
-
   public void handleRichText(ReadableArray args) {
     if (args != null && args.size() > 0) {
       for (int i = 0; i < args.size(); i++) {

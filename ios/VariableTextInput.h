@@ -50,6 +50,13 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, strong) NSString *keyWord;
 @property(nonatomic, assign) Boolean startKeyWord;
 @property (nonatomic, strong) NSLayoutConstraint *heightConstraint;
+@property (nonatomic, assign) CGFloat paddingTop;
+@property (nonatomic, assign) CGFloat paddingLeft;
+@property (nonatomic, assign) CGFloat paddingRight;
+@property (nonatomic, assign) CGFloat paddingBottom;
+@property (nonatomic, assign) CGFloat paddingHorizontal;
+@property (nonatomic, assign) CGFloat paddingVertical;
+@property (nonatomic, assign) CGFloat padding;
 - (void)setPlaceholderVisibleForText:(NSString *)str;
 - (NSString *)getStrContentInRange:(NSRange)range;
 @end

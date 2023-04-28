@@ -42,6 +42,8 @@ static NSString * const kTextAlignmentKey = @"textAlignment";
     self = [super initWithFrame:frame textContainer:textContainer];
     if (self) {
       self.delegate = self;
+        [self addObserver:self forKeyPath:@"contentSize" options:NSKeyValueObservingOptionNew|NSKeyValueObservingOptionOld context:NULL];
+
       [self preparePlaceholder];
     }
     return self;
@@ -52,12 +54,13 @@ static NSString * const kTextAlignmentKey = @"textAlignment";
     self = [super initWithFrame:frame];
     if (self) {
       self.delegate = self;
+        [self addObserver:self forKeyPath:@"contentSize" options:NSKeyValueObservingOptionNew|NSKeyValueObservingOptionOld context:NULL];
+
       [self preparePlaceholder];
     }
     return self;
 }
 #endif
-
 - (void)preparePlaceholder
 {
     NSAssert(!self.placeholderTextView, @"placeholder has been prepared already: %@", self.placeholderTextView);
@@ -192,6 +195,9 @@ static NSString * const kTextAlignmentKey = @"textAlignment";
     else if ([keyPath isEqualToString:kTextAlignmentKey]) {
         NSNumber *alignment = [change objectForKey:NSKeyValueChangeNewKey];
         self.placeholderTextView.textAlignment = alignment.intValue;
+    }else if([keyPath isEqualToString:@"contentSize"]){
+        //v center
+//        [self updateContentInset];
     }
     else {
         [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
@@ -552,5 +558,66 @@ static NSString * const kTextAlignmentKey = @"textAlignment";
     CGSize size = [super intrinsicContentSize];
     size.height = self.contentSize.height;
     return size;
+}
+- (void)updateContentInset {
+    NSLog(@"contentSize %@",NSStringFromCGSize(self.contentSize));
+    CGFloat deadSpace = (CGRectGetHeight(self.bounds) - self.contentSize.height);
+    CGFloat inset = MAX(0, deadSpace/2.0);
+    self.contentInset = UIEdgeInsetsMake(inset, self.contentInset.left, inset, self.contentInset.right);
+    self.contentOffset = CGPointMake(0, -inset);
+    [self layoutSubviews];
+}
+- (void)setPaddingTop:(CGFloat)paddingTop
+{
+    _paddingTop = paddingTop;
+    
+    UIEdgeInsets insets = self.textContainerInset;
+    [self setPaddingTop:paddingTop left:insets.left bottom:insets.bottom right:insets.right];
+}
+
+- (void)setPaddingLeft:(CGFloat)paddingLeft
+{
+    _paddingLeft = paddingLeft;
+    
+    UIEdgeInsets insets = self.textContainerInset;
+    [self setPaddingTop:insets.top left:paddingLeft bottom:insets.bottom right:insets.right];
+}
+
+- (void)setPaddingBottom:(CGFloat)paddingBottom
+{
+    _paddingBottom = paddingBottom;
+    
+    UIEdgeInsets insets = self.textContainerInset;
+    [self setPaddingTop:insets.top left:insets.left bottom:paddingBottom right:insets.right];
+}
+
+- (void)setPaddingRight:(CGFloat)paddingRight
+{
+    _paddingRight = paddingRight;
+    
+    UIEdgeInsets insets = self.textContainerInset;
+    [self setPaddingTop:insets.top left:insets.left bottom:insets.bottom right:paddingRight];
+}
+- (void)setPaddingTop:(CGFloat)top left:(CGFloat)left bottom:(CGFloat)bottom right:(CGFloat)right
+{
+    UIEdgeInsets insets = UIEdgeInsetsMake(top, left, bottom, right);
+    self.textContainerInset = insets;
+}
+- (void)setPadding:(CGFloat)padding
+{
+    _padding = padding;
+    [self setPaddingTop:padding left:padding bottom:padding right:padding];
+}
+- (void)setPaddingHorizontal:(CGFloat)paddingHorizontal
+{
+    _paddingHorizontal = paddingHorizontal;
+    UIEdgeInsets insets = self.textContainerInset;
+    [self setPaddingTop:insets.top left:paddingHorizontal bottom:insets.bottom right:paddingHorizontal];
+}
+- (void)setPaddingVertical:(CGFloat)paddingVertical
+{
+    _paddingVertical = paddingVertical;
+    UIEdgeInsets insets = self.textContainerInset;
+    [self setPaddingTop:paddingVertical left:insets.left bottom:paddingVertical right:insets.right];
 }
 @end

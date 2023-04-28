@@ -1,21 +1,33 @@
 package com.variabletextinput;
+
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
+import android.os.Build;
+import android.text.InputFilter;
+import android.text.Layout;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.facebook.react.bridge.JSApplicationIllegalArgumentException;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.common.MapBuilder;
+import com.facebook.react.uimanager.PixelUtil;
 import com.facebook.react.uimanager.SimpleViewManager;
 import com.facebook.react.uimanager.Spacing;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.ViewProps;
 import com.facebook.react.uimanager.annotations.ReactProp;
 import com.facebook.react.uimanager.annotations.ReactPropGroup;
+import com.facebook.yoga.YogaConstants;
 import com.variabletextinput.view.VariableTextInput;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 public class VariableTextInputViewManager extends SimpleViewManager<VariableTextInput>  {
   private enum RNTONATIVEMETHOD {
@@ -33,6 +45,9 @@ public class VariableTextInputViewManager extends SimpleViewManager<VariableText
     }
   }
   private static final int[] PADDING_TYPES = {
+    Spacing.ALL, Spacing.LEFT, Spacing.RIGHT, Spacing.TOP, Spacing.BOTTOM,
+  };
+  private static final int[] SPACING_TYPES = {
     Spacing.ALL, Spacing.LEFT, Spacing.RIGHT, Spacing.TOP, Spacing.BOTTOM,
   };
   public static final String REACT_CLASS = "VariableTextInputView";
@@ -63,6 +78,12 @@ public class VariableTextInputViewManager extends SimpleViewManager<VariableText
       view.setTextColor(color);
     }
   }
+  @ReactProp(name = ViewProps.BACKGROUND_COLOR, customType = "Color")
+  public void setBackGroundColor(VariableTextInput view, @Nullable Integer color) {
+    if (color != null) {
+      view.setBackGroundColor(color);
+    }
+  }
   @ReactProp(name = ViewProps.FONT_SIZE, customType = "FontColor")
   public void setFontSize(VariableTextInput view, @Nullable Integer fontSize) {
     if (fontSize != null) {
@@ -81,7 +102,10 @@ public class VariableTextInputViewManager extends SimpleViewManager<VariableText
       view.setHighlightColor(color);
     }
   }
-
+  @ReactProp(name = "maxLength")
+  public void setMaxLength(VariableTextInput view, @Nullable Integer maxLength) {
+     view.setMaxLength(maxLength);
+  }
   @ReactProp(name = "handlesColor", customType = "Color")
   public void setHandlesColor(VariableTextInput view, @Nullable Integer color) {
     if (color != null) {
@@ -92,8 +116,62 @@ public class VariableTextInputViewManager extends SimpleViewManager<VariableText
   @ReactPropGroup(names = {
     "padding", "paddingLeft", "paddingRight", "paddingTop", "paddingBottom"
   }, customType = "String")
-  public void setBorderColor(VariableTextInput view, int index, Integer padding) {
+  public void setPadding(VariableTextInput view, int index, Integer padding) {
     view.setContentPadding(PADDING_TYPES[index], padding);
+  }
+  @ReactPropGroup(
+    names = {
+      ViewProps.BORDER_RADIUS,
+      ViewProps.BORDER_TOP_LEFT_RADIUS,
+      ViewProps.BORDER_TOP_RIGHT_RADIUS,
+      ViewProps.BORDER_BOTTOM_RIGHT_RADIUS,
+      ViewProps.BORDER_BOTTOM_LEFT_RADIUS
+    },
+    defaultFloat = YogaConstants.UNDEFINED)
+  public void setBorderRadius(VariableTextInput view, int index, float borderRadius) {
+    if (!YogaConstants.isUndefined(borderRadius)) {
+      borderRadius = PixelUtil.toPixelFromDIP(borderRadius);
+    }
+
+    if (index == 0) {
+      view.setBorderRadius(borderRadius);
+    } else {
+      view.setBorderRadius(borderRadius, index - 1);
+    }
+  }
+  @ReactPropGroup(
+    names = {
+      ViewProps.BORDER_WIDTH,
+      ViewProps.BORDER_LEFT_WIDTH,
+      ViewProps.BORDER_RIGHT_WIDTH,
+      ViewProps.BORDER_TOP_WIDTH,
+      ViewProps.BORDER_BOTTOM_WIDTH,
+    },
+    defaultFloat = YogaConstants.UNDEFINED)
+  public void setBorderWidth(VariableTextInput view, int index, float width) {
+    if (!YogaConstants.isUndefined(width)) {
+      width = PixelUtil.toPixelFromDIP(width);
+    }
+    view.setBorderWidth(SPACING_TYPES[index], width);
+  }
+  @ReactPropGroup(
+    names = {
+      "borderColor",
+      "borderLeftColor",
+      "borderRightColor",
+      "borderTopColor",
+      "borderBottomColor"
+    },
+    customType = "Color")
+  public void setBorderColor(VariableTextInput view, int index, Integer color) {
+    float rgbComponent =
+      color == null ? YogaConstants.UNDEFINED : (float) ((int) color & 0x00FFFFFF);
+    float alphaComponent = color == null ? YogaConstants.UNDEFINED : (float) ((int) color >>> 24);
+    view.setBorderColor(SPACING_TYPES[index], rgbComponent, alphaComponent);
+  }
+  @ReactProp(name = "borderStyle")
+  public void setBorderStyle(VariableTextInput view, @Nullable String borderStyle) {
+    view.setBorderStyle(borderStyle);
   }
   @ReactProp(name = "autoFocus")
   public void setAutoFocus(VariableTextInput view, boolean autoFocus) {
@@ -113,15 +191,49 @@ public class VariableTextInputViewManager extends SimpleViewManager<VariableText
   public void setPlaceholder(VariableTextInput view, String placeholder){
     view.setPlaceholder(placeholder);
   }
+  @ReactProp(name="placeholderTextColor",customType = "Color")
+  public void setPlaceholderTextColor(VariableTextInput view, @Nullable Integer placeholderColor){
+    view.setPlaceholderColor(placeholderColor);
+  }
   @ReactProp(name = "selectionColor", customType = "Color")
   public void setSelectionColor(EditText view, @Nullable Integer color) {
     if (color != null) {
       view.setHighlightColor(color);
     }
   }
-  @ReactProp(name="underlineColorAndroid",customType ="Color" )
-  public void setUnderLineColorAndroid(VariableTextInput view,@Nullable Integer color){
-    view.setUnderLineColorAndroid(color);
+  @ReactProp(name = "underlineColorAndroid", customType = "Color")
+  public void setUnderlineColor(VariableTextInput view, @Nullable Integer underlineColor) {
+    // Drawable.mutate() can sometimes crash due to an AOSP bug:
+    // See https://code.google.com/p/android/issues/detail?id=191754 for more info
+    Drawable background = view.getBackground();
+    Drawable drawableToMutate = background;
+
+    if (background == null) {
+      return;
+    }
+
+    if (background.getConstantState() != null) {
+      try {
+        drawableToMutate = background.mutate();
+      } catch (NullPointerException e) {
+//        FLog.e(TAG, "NullPointerException when setting underlineColorAndroid for TextInput", e);
+      }
+    }
+
+    if (underlineColor == null) {
+      drawableToMutate.clearColorFilter();
+    } else {
+      // fixes underlineColor transparent not working on API 21
+      // re-sets the TextInput underlineColor https://bit.ly/3M4alr6
+      if (Build.VERSION.SDK_INT == Build.VERSION_CODES.LOLLIPOP) {
+        int bottomBorderColor = view.getBorderColor(Spacing.BOTTOM);
+        setBorderColor(view, Spacing.START, underlineColor);
+        drawableToMutate.setColorFilter(underlineColor, PorterDuff.Mode.SRC_IN);
+        setBorderColor(view, Spacing.START, bottomBorderColor);
+      } else {
+        drawableToMutate.setColorFilter(underlineColor, PorterDuff.Mode.SRC_IN);
+      }
+    }
   }
   @ReactProp(name = "keyboardType")
   public void setKeyboardType(VariableTextInput view, String keyboardType) {
