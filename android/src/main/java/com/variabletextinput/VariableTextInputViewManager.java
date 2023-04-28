@@ -4,6 +4,7 @@ import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.text.InputFilter;
+import android.text.InputType;
 import android.text.Layout;
 import android.util.Log;
 import android.view.Gravity;
@@ -201,6 +202,24 @@ public class VariableTextInputViewManager extends SimpleViewManager<VariableText
       view.setHighlightColor(color);
     }
   }
+  @ReactProp(name = "disableFullscreenUI", defaultBoolean = false)
+  public void setDisableFullscreenUI(VariableTextInput view, boolean disableFullscreenUI) {
+    view.setDisableFullscreenUI(disableFullscreenUI);
+  }
+  @ReactProp(name = "returnKeyType")
+  public void setReturnKeyType(VariableTextInput view, String returnKeyType) {
+    view.setReturnKeyType(returnKeyType);
+  }
+  private static final int IME_ACTION_ID = 0x670;
+
+  @ReactProp(name = "returnKeyLabel")
+  public void setReturnKeyLabel(VariableTextInput view, String returnKeyLabel) {
+    view.setImeActionLabel(returnKeyLabel, IME_ACTION_ID);
+  }
+  @ReactProp(name = "submitBehavior")
+  public void setSubmitBehavior(VariableTextInput view, @Nullable String submitBehavior) {
+    view.setSubmitBehavior(submitBehavior);
+  }
   @ReactProp(name = "underlineColorAndroid", customType = "Color")
   public void setUnderlineColor(VariableTextInput view, @Nullable Integer underlineColor) {
     // Drawable.mutate() can sometimes crash due to an AOSP bug:
@@ -233,6 +252,14 @@ public class VariableTextInputViewManager extends SimpleViewManager<VariableText
       } else {
         drawableToMutate.setColorFilter(underlineColor, PorterDuff.Mode.SRC_IN);
       }
+    }
+  }
+  @ReactProp(name = "onSelectionChange", defaultBoolean = false)
+  public void setOnSelectionChange(final VariableTextInput view, boolean onSelectionChange) {
+    if (onSelectionChange) {
+      view.setSelectionWatcher(new ReactSelectionWatcher(view));
+    } else {
+      view.setSelectionWatcher(null);
     }
   }
   @ReactProp(name = "keyboardType")
@@ -324,6 +351,6 @@ public class VariableTextInputViewManager extends SimpleViewManager<VariableText
       "onAndroidChange",
       MapBuilder.of("registrationName", "onAndroidChange")
     ).put( "onAndroidContentSizeChange",
-      MapBuilder.of("registrationName", "onAndroidContentSizeChange")).build();
+      MapBuilder.of("registrationName", "onAndroidContentSizeChange")).put("onAndroidSubmitEditing",MapBuilder.of("registrationName","onAndroidSubmitEditing")).build();
   }
 }

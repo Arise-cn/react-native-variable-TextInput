@@ -620,4 +620,16 @@ static NSString * const kTextAlignmentKey = @"textAlignment";
     UIEdgeInsets insets = self.textContainerInset;
     [self setPaddingTop:paddingVertical left:insets.left bottom:paddingVertical right:insets.right];
 }
+- (BOOL)textInputShouldReturn
+{
+  // We send `submit` event here, in `textInputShouldReturn`
+  // (not in `textInputDidReturn)`, because of semantic of the event:
+  // `onSubmitEditing` is called when "Submit" button
+  // (the blue key on onscreen keyboard) did pressed
+  // (no connection to any specific "submitting" process).
+  if (self.onSubmitEditing) {
+    self.onSubmitEditing(@{@"text": [self.textStorage getPlainString]});
+  }
+  return _blurOnSubmit;
+}
 @end

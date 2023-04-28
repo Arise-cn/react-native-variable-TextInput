@@ -7,7 +7,6 @@ import {
   ImageResolvedAssetSource,
   Image,
   View,
-  TextInput,
 } from 'react-native';
 import {
   IATTextViewBase,
@@ -89,6 +88,9 @@ export const App = () => {
   const focus = () => {
     inPutRef.current?.focus();
   };
+  const sub = (e: any) => {
+    console.log('rrrrr===>', e);
+  };
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <VariableTextInputView
@@ -98,39 +100,9 @@ export const App = () => {
         placeholder={'测试测试测试'}
         placeholderTextColor={'#fff'}
         underlineColorAndroid={'rgba(0,0,0,0)'}
-      />
-      <TextInput
-        multiline={true}
-        placeholder="测试测试"
-        style={{
-          height: 50,
-          backgroundColor: 'red',
-          width: '100%',
-          borderRadius: 5,
-          borderTopColor: 'red',
-          borderTopEndRadius: 5,
-          borderTopLeftRadius: 5,
-          borderTopRightRadius: 5,
-          borderTopStartRadius: 5,
-          borderTopWidth: 1,
-          borderLeftColor: 'red',
-          borderLeftWidth: 1,
-          borderBottomColor: 'red',
-          borderBottomEndRadius: 5,
-          borderBottomLeftRadius: 5,
-          borderBottomRightRadius: 5,
-          borderBottomStartRadius: 5,
-          borderBottomWidth: 1,
-          borderColor: 'red',
-          borderEndColor: 'red',
-          borderEndWidth: 1,
-          borderRightColor: 'red',
-          borderRightWidth: 1,
-          borderStartColor: 'red',
-          borderStartWidth: 1,
-          borderWidth: 1,
-          borderStyle: 'dashed',
-        }}
+        blurOnSubmit={true}
+        onSubmitEditing={sub}
+        keyboardAppearance={'dark'}
       />
       <View style={{ flexDirection: 'row', marginTop: 40 }}>
         <TouchableOpacity onPress={blur} style={{ marginLeft: 20 }}>
@@ -179,28 +151,5 @@ const styles = StyleSheet.create({
     width: '100%',
     minHeight: 100,
     borderRadius: 5,
-    borderTopColor: 'red',
-    borderTopEndRadius: 5,
-    borderTopLeftRadius: 5,
-    borderTopRightRadius: 5,
-    borderTopStartRadius: 5,
-    borderTopWidth: 1,
-    borderLeftColor: 'red',
-    borderLeftWidth: 1,
-    borderBottomColor: 'red',
-    borderBottomEndRadius: 5,
-    borderBottomLeftRadius: 5,
-    borderBottomRightRadius: 5,
-    borderBottomStartRadius: 5,
-    borderBottomWidth: 1,
-    borderColor: 'red',
-    borderEndColor: 'red',
-    borderEndWidth: 1,
-    borderRightColor: 'red',
-    borderRightWidth: 1,
-    borderStartColor: 'red',
-    borderStartWidth: 1,
-    borderWidth: 1,
-    borderStyle: 'dashed',
   },
 });

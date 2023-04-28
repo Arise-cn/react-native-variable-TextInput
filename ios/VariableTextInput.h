@@ -44,6 +44,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property(assign, nonatomic, getter=isSupport) BOOL bSupport;
 @property(nonatomic, copy) RCTBubblingEventBlock onChange;
 @property (nonatomic, copy, nullable) RCTDirectEventBlock onContentSizeChange;
+@property(nonatomic, copy) RCTBubblingEventBlock onSubmitEditing;
 @property(nonatomic, copy, nullable) RCTDirectEventBlock onTextInput;
 @property(nonatomic, strong) NSDictionary *defultTypingAttributes;
 @property(nonatomic, strong) NSArray *tags;
@@ -57,6 +58,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, assign) CGFloat paddingHorizontal;
 @property (nonatomic, assign) CGFloat paddingVertical;
 @property (nonatomic, assign) CGFloat padding;
+@property (nonatomic, assign) BOOL blurOnSubmit;
 - (void)setPlaceholderVisibleForText:(NSString *)str;
 - (NSString *)getStrContentInRange:(NSRange)range;
 @end

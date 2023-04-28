@@ -21,8 +21,10 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -35,6 +37,7 @@ import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.uimanager.Spacing;
+import com.facebook.react.uimanager.events.EventDispatcher;
 import com.facebook.react.uimanager.events.RCTEventEmitter;
 import com.facebook.react.views.text.ReactFontManager;
 import com.facebook.react.views.view.ReactViewBackgroundDrawable;
@@ -66,6 +69,8 @@ public class VariableTextInput extends LinearLayout {
   private SpannableString mSpannableString;
   private Editable mEditable;
   private ReactViewBackgroundDrawable reactViewBackgroundDrawable;
+  private @Nullable String mReturnKeyType;
+  private boolean mDisableFullscreen;
   private static final InputFilter[] EMPTY_FILTERS = new InputFilter[0];
   public VariableTextInput(Context context) {
     super(context);
@@ -80,6 +85,8 @@ public class VariableTextInput extends LinearLayout {
     editText.setInputType(editText.getInputType() | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
         | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
     editText.setPadding(0, 0, 0, 0);
+    editText.setImeOptions(EditorInfo.IME_ACTION_NONE);
+    mDisableFullscreen = false;
     // This was used in conjunction with setting raw input type for selecting lock
     // notes.
     // However, it causes the keyboard to not come up for editing existing notes.
@@ -198,6 +205,55 @@ public class VariableTextInput extends LinearLayout {
         }
       }
     });
+    editText.setOnEditorActionListener(
+      new TextView.OnEditorActionListener() {
+        @Override
+        public boolean onEditorAction(TextView v, int actionId, KeyEvent keyEvent) {
+          if ((actionId & EditorInfo.IME_MASK_ACTION) != 0 || actionId == EditorInfo.IME_NULL) {
+            boolean isMultiline = true;
+
+            boolean shouldSubmit = editText.shouldSubmitOnReturn();
+            boolean shouldBlur = editText.shouldBlurOnReturn();
+            // Motivation:
+            // * shouldSubmit => Clear focus; prevent default behavior (return true);
+            // * shouldBlur => Submit; prevent default behavior (return true);
+            // * !shouldBlur && !shouldSubmit && isMultiline => Perform default behavior (return
+            // false);
+            // * !shouldBlur && !shouldSubmit && !isMultiline => Prevent default behavior (return
+            // true);
+            if (shouldSubmit) {
+              WritableMap event = Arguments.createMap();
+              event.putString("text", editText.getText().toString());
+              final Context context = getContext();
+              if (context instanceof ReactContext) {
+                ((ReactContext) context).getJSModule(RCTEventEmitter.class).receiveEvent(getId(), "onAndroidSubmitEditing", event);
+              }
+            }
+
+            if (shouldBlur) {
+              editText.clearFocus();
+            }
+
+            // Prevent default behavior except when we want it to insert a newline.
+            if (shouldBlur || shouldSubmit || !isMultiline) {
+              return true;
+            }
+
+            // If we've reached this point, it means that the TextInput has 'submitBehavior' set
+            // nullish and 'multiline' set to true. But it's still possible to get IME_ACTION_NEXT
+            // and IME_ACTION_PREVIOUS here in case if 'disableFullscreenUI' is false and Android
+            // decides to render this EditText in the full screen mode (when a phone has the
+            // landscape orientation for example). The full screen EditText also renders an action
+            // button specified by the 'returnKeyType' prop. We have to prevent Android from
+            // requesting focus from the next/previous focusable view since it must only be
+            // controlled from JS.
+            return actionId == EditorInfo.IME_ACTION_NEXT
+              || actionId == EditorInfo.IME_ACTION_PREVIOUS;
+          }
+
+          return true;
+        }
+      });
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
       editText.setCustomSelectionActionModeCallback(new ActionMode.Callback() {
         @Override
@@ -377,7 +433,9 @@ public class VariableTextInput extends LinearLayout {
   public void setBorderColor(int position, float color, float alpha) {
     reactViewBackgroundDrawable.setBorderColor(position, color, alpha);
   }
-
+  public void setSubmitBehavior(String submitBehavior) {
+    editText.setSubmitBehavior(submitBehavior);
+  }
   public int getBorderColor(int position) {
     return reactViewBackgroundDrawable.getBorderColor(position);
   }
@@ -472,8 +530,55 @@ public class VariableTextInput extends LinearLayout {
   public void setPlaceholderColor(int placeholderColor){
     editText.setHintTextColor(placeholderColor);
   }
-  public void setUnderLineColorAndroid(Integer color) {
-    editText.setBackgroundTintList(ColorStateList.valueOf(color));
+  public void setReturnKeyType(String returnKeyType) {
+    mReturnKeyType = returnKeyType;
+    updateImeOptions();
+  }
+  private void updateImeOptions() {
+    // Default to IME_ACTION_DONE
+    int returnKeyFlag = EditorInfo.IME_ACTION_DONE;
+    if (mReturnKeyType != null) {
+      switch (mReturnKeyType) {
+        case "go":
+          returnKeyFlag = EditorInfo.IME_ACTION_GO;
+          break;
+        case "next":
+          returnKeyFlag = EditorInfo.IME_ACTION_NEXT;
+          break;
+        case "none":
+          returnKeyFlag = EditorInfo.IME_ACTION_NONE;
+          break;
+        case "previous":
+          returnKeyFlag = EditorInfo.IME_ACTION_PREVIOUS;
+          break;
+        case "search":
+          returnKeyFlag = EditorInfo.IME_ACTION_SEARCH;
+          break;
+        case "send":
+          returnKeyFlag = EditorInfo.IME_ACTION_SEND;
+          break;
+        case "done":
+          returnKeyFlag = EditorInfo.IME_ACTION_DONE;
+          break;
+      }
+    }
+
+    if (mDisableFullscreen) {
+      setImeOptions(returnKeyFlag | EditorInfo.IME_FLAG_NO_FULLSCREEN);
+    } else {
+      setImeOptions(returnKeyFlag);
+    }
+  }
+  public void setImeActionLabel(String returnKeyLabel,int imID){
+    editText.setImeActionLabel(returnKeyLabel,imID);
+  }
+  public void setDisableFullscreenUI(boolean disableFullscreenUI) {
+    mDisableFullscreen = disableFullscreenUI;
+    updateImeOptions();
+  }
+
+  public boolean getDisableFullscreenUI() {
+    return mDisableFullscreen;
   }
   public void setFontSize(Integer fontSize) {
     editText.setTextSize(fontSize);

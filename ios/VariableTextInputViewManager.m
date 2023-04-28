@@ -21,6 +21,10 @@ RCT_EXPORT_VIEW_PROPERTY(paddingLeft, CGFloat)
 RCT_EXPORT_VIEW_PROPERTY(padding, CGFloat)
 RCT_EXPORT_VIEW_PROPERTY(paddingHorizontal, CGFloat)
 RCT_EXPORT_VIEW_PROPERTY(paddingVertical, CGFloat)
+RCT_EXPORT_VIEW_PROPERTY(keyboardType, UIKeyboardType)
+RCT_EXPORT_VIEW_PROPERTY(keyboardAppearance, UIKeyboardAppearance)
+RCT_EXPORT_VIEW_PROPERTY(returnKeyType, UIReturnKeyType)
+RCT_EXPORT_VIEW_PROPERTY(blurOnSubmit, BOOL)
 RCT_CUSTOM_VIEW_PROPERTY(placeholderTextColor, UIColor, VariableTextInput)
 {
     [view setValue: [RCTConvert UIColor:json] forKeyPath: @"placeholderTextColor"];
@@ -93,6 +97,7 @@ RCT_EXPORT_METHOD(insertEmoji:( NSDictionary *)rnImageData)
     _textInput = [[VariableTextInput alloc]init];
     _textInput.textContainerInset = UIEdgeInsetsZero;
     _textInput.textContainer.lineFragmentPadding = 0;
+    _textInput.blurOnSubmit = true;
     return  _textInput;
 }
 #pragma mark -drawImagewith text

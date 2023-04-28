@@ -12,6 +12,7 @@ import {
   ProcessedColorValue,
   TextInputContentSizeChangeEventData,
   Platform,
+  KeyboardTypeOptions,
 } from 'react-native';
 import React, {
   forwardRef,
@@ -62,12 +63,14 @@ interface IProps {
   style?: StyleProp<TextStyle> | undefined;
   placeholder?: string;
   placeholderTextColor?: ColorValue;
+  keyboardAppearance?: 'default' | 'light' | 'dark';
   onChange?: (e: NativeSyntheticEvent<TextInputChangeEventData>) => void;
   onChangeText?: (text: string) => void;
   value?: string;
   maxTextLength?: number;
   text?: string;
   tags?: string[];
+  blurOnSubmit?: boolean;
   onTextInput?: (e: IVTTextInputData) => void;
   onContentSizeChange?: (
     e: NativeSyntheticEvent<TextInputContentSizeChangeEventData>
@@ -77,6 +80,10 @@ interface IProps {
   onAndroidContentSizeChange?: (
     e: NativeSyntheticEvent<TextInputContentSizeChangeEventData>
   ) => void;
+  keyboardType?: KeyboardTypeOptions | undefined;
+  onSubmitEditing?: (text: string) => void;
+  onAndroidSubmitEditing?: (text: string) => void;
+  submitBehavior?: 'submit';
 }
 export type IATTextViewBase = {
   focus: () => void;
@@ -209,6 +216,9 @@ const VariableTextInputView = forwardRef(
       props.onChangeText && props.onChangeText(e.nativeEvent.text);
       props.onChange && props.onChange(e);
     };
+    const onAndroidSubmitEditing = () => {
+      //todo
+    };
     const style = StyleSheet.flatten([props.style, { height: currentHeight }]);
     return (
       <RNTVariableTextInputView
@@ -218,7 +228,9 @@ const VariableTextInputView = forwardRef(
         onContentSizeChange={onContentSizeChange}
         onAndroidChange={onAndroidChange}
         onAndroidContentSizeChange={onAndroidContentSizeChange}
+        submitBehavior="submit"
         {...props}
+        onAndroidSubmitEditing={onAndroidSubmitEditing}
         style={style}
       />
     );
