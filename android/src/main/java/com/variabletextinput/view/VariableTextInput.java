@@ -138,6 +138,17 @@ public class VariableTextInput extends LinearLayout {
         }
         String newText = s.toString().substring(start, start + count);
         String oldText = mPreviousText.substring(start, start + before);
+        WritableMap onTextInputEvent = Arguments.createMap();
+        if (newText.length()>oldText.length()){
+          String t = newText.replace(oldText,"");
+          onTextInputEvent.putString("text", t);
+        }else {
+          onTextInputEvent.putString("text", "");
+        }
+        final Context context = getContext();
+        if (context instanceof ReactContext) {
+          ((ReactContext) context).getJSModule(RCTEventEmitter.class).receiveEvent(getId(), "onAndroidTextInput", onTextInputEvent);
+        }
         // Don't send same text changes
         if (count == before && newText.equals(oldText)) {
           return;
@@ -153,7 +164,6 @@ public class VariableTextInput extends LinearLayout {
         }
         WritableMap event = Arguments.createMap();
         event.putString("text", s.toString());
-        final Context context = getContext();
         if (context instanceof ReactContext) {
           ((ReactContext) context).getJSModule(RCTEventEmitter.class).receiveEvent(getId(), "onAndroidChange", event);
         }

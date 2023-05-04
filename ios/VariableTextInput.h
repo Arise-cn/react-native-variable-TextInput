@@ -45,10 +45,12 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, copy) RCTBubblingEventBlock onChange;
 @property (nonatomic, copy, nullable) RCTDirectEventBlock onContentSizeChange;
 @property(nonatomic, copy) RCTBubblingEventBlock onSubmitEditing;
+@property(nonatomic,copy, nullable)RCTDirectEventBlock onTag;
 @property(nonatomic, copy, nullable) RCTDirectEventBlock onTextInput;
 @property(nonatomic, strong) NSDictionary *defultTypingAttributes;
 @property(nonatomic, strong) NSArray *tags;
 @property(nonatomic, strong) NSString *keyWord;
+@property(nonatomic,strong)NSString *tagStr;
 @property(nonatomic, assign) Boolean startKeyWord;
 @property (nonatomic, strong) NSLayoutConstraint *heightConstraint;
 @property (nonatomic, assign) CGFloat paddingTop;

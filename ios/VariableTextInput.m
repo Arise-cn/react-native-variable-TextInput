@@ -328,6 +328,22 @@ static NSString * const kTextAlignmentKey = @"textAlignment";
 - (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
   NSString *oldStr =  [self getStrContentInRange:NSMakeRange(0, [self.attributedText length])];
   NSString *newStr =  [NSString stringWithFormat:@"%@%@",oldStr,text];
+    [self handleTags:text];
+    if(self.tagStr != nil && ![self.tagStr isEqualToString:@""]){
+        if(self.keyWord == nil){
+            self.keyWord = @"";
+        }else{
+            self.keyWord = [NSString stringWithFormat:@"%@%@",self.keyWord,text];
+            self.keyWord = [self.keyWord stringByReplacingOccurrencesOfString:self.tagStr withString:@""];
+            
+        }
+        if (_onTag) {
+            _onTag(@{
+            @"tag": _tagStr,
+            @"keyWord": _keyWord,
+          });
+        }
+    }
   if (self.max_TextLength>0 && newStr.length>self.max_TextLength) {
     return NO;
   }
@@ -347,7 +363,20 @@ static NSString * const kTextAlignmentKey = @"textAlignment";
     }
   return YES;
  }
-
+-(void)handleTags:(NSString *)text {
+   __block Boolean istags =NO;
+    __block NSString *tagStr = @"";
+    [self.tags enumerateObjectsWithOptions:NSEnumerationReverse usingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+         NSLog(@"%@----%@",self.tags[idx],[NSThread currentThread]);
+        NSString *str = self.tags[idx];
+        if([str isEqualToString:text]){
+            istags = YES;
+            tagStr = text;
+            self.tagStr = tagStr;
+            self.keyWord = @"";
+        }
+     }];
+}
 - (void)textViewDidBeginEditing:(UITextView *)textView {
   //todo
 }

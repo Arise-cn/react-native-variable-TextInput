@@ -25,9 +25,6 @@ import { findNodeHandle } from 'react-native';
 const VariableTextInputViewManager = NativeModules.VariableTextInputViewManager;
 export interface IVTTextInputData {
   nativeEvent: {
-    previousText: string;
-    range: { end: number; start: number };
-    target: number;
     text: string;
   };
 }
@@ -57,9 +54,12 @@ export interface IInserTextAttachmentItem {
   emojiTag?: string; //[微笑] //emojitag
   emojiUri?: string;
 }
+export interface IOnTagsType {
+  tag: string;
+  keyWord: string;
+}
 interface IProps {
   onMention?: () => void;
-  onTag?: () => void;
   style?: StyleProp<TextStyle> | undefined;
   placeholder?: string;
   placeholderTextColor?: ColorValue;
@@ -69,9 +69,9 @@ interface IProps {
   value?: string;
   maxTextLength?: number;
   text?: string;
-  tags?: string[];
   blurOnSubmit?: boolean;
-  onTextInput?: (e: IVTTextInputData) => void;
+  onTextInput?: (event: IVTTextInputData) => void;
+  onAndroidTextInput?: (event: IVTTextInputData) => void;
   onContentSizeChange?: (
     e: NativeSyntheticEvent<TextInputContentSizeChangeEventData>
   ) => void;
@@ -91,6 +91,7 @@ export type IATTextViewBase = {
   insertEmoji: (img: IInserTextAttachmentItem) => void;
   insertMentions: (data: IInserTextAttachmentItem) => void;
   changeAttributedText: (data: IInserTextAttachmentItem[]) => void;
+  dismissTag: () => void;
 };
 export type IATTextViewRef = React.ForwardedRef<IATTextViewBase>;
 
@@ -201,6 +202,13 @@ const VariableTextInputView = forwardRef(
         setCurrentHeight(event.nativeEvent.contentSize.height);
       }
     };
+    const dismissTag = () => {
+      if (Platform.OS === 'android') {
+        callNativeMethod('dismissTag');
+      } else {
+        VariableTextInputViewManager.dismissTag();
+      }
+    };
     useImperativeHandle(ref, () => {
       return {
         focus: focus,
@@ -208,6 +216,7 @@ const VariableTextInputView = forwardRef(
         insertEmoji: insertEmoji,
         insertMentions: insertMentions,
         changeAttributedText: changeAttributedText,
+        dismissTag: dismissTag,
       };
     });
     const onAndroidChange = (
@@ -216,21 +225,21 @@ const VariableTextInputView = forwardRef(
       props.onChangeText && props.onChangeText(e.nativeEvent.text);
       props.onChange && props.onChange(e);
     };
-    const onAndroidSubmitEditing = () => {
-      //todo
+    const onAndroidSubmitEditing = () => {};
+    const onAndroidTextInput = (e: IVTTextInputData) => {
+      props.onTextInput && props.onTextInput(e);
     };
     const style = StyleSheet.flatten([props.style, { height: currentHeight }]);
     return (
       <RNTVariableTextInputView
         ref={nativeRef}
         onChange={_onChange}
-        text={props.value}
         onContentSizeChange={onContentSizeChange}
         onAndroidChange={onAndroidChange}
         onAndroidContentSizeChange={onAndroidContentSizeChange}
-        submitBehavior="submit"
         {...props}
         onAndroidSubmitEditing={onAndroidSubmitEditing}
+        onAndroidTextInput={onAndroidTextInput}
         style={style}
       />
     );

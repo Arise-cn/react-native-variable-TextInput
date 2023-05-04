@@ -256,11 +256,11 @@ public class VariableTextInputViewManager extends SimpleViewManager<VariableText
   }
   @ReactProp(name = "onSelectionChange", defaultBoolean = false)
   public void setOnSelectionChange(final VariableTextInput view, boolean onSelectionChange) {
-    if (onSelectionChange) {
-      view.setSelectionWatcher(new ReactSelectionWatcher(view));
-    } else {
-      view.setSelectionWatcher(null);
-    }
+//    if (onSelectionChange) {
+//      view.setSelectionWatcher(new ReactSelectionWatcher(view));
+//    } else {
+//      view.setSelectionWatcher(null);
+//    }
   }
   @ReactProp(name = "keyboardType")
   public void setKeyboardType(VariableTextInput view, String keyboardType) {
@@ -351,6 +351,6 @@ public class VariableTextInputViewManager extends SimpleViewManager<VariableText
       "onAndroidChange",
       MapBuilder.of("registrationName", "onAndroidChange")
     ).put( "onAndroidContentSizeChange",
-      MapBuilder.of("registrationName", "onAndroidContentSizeChange")).put("onAndroidSubmitEditing",MapBuilder.of("registrationName","onAndroidSubmitEditing")).build();
+      MapBuilder.of("registrationName", "onAndroidTextInput")).put("onAndroidTextInput",MapBuilder.of("registrationName","onAndroidTextInput")).build();
   }
 }

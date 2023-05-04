@@ -12,6 +12,7 @@ import {
   IATTextViewBase,
   IInserTextAttachmentItem,
   ITextType,
+  IVTTextInputData,
   VariableTextInputView,
 } from 'react-native-variable-text-input';
 export const App = () => {
@@ -91,6 +92,10 @@ export const App = () => {
   const sub = (e: any) => {
     console.log('rrrrr===>', e);
   };
+  const onTextInput = (event: IVTTextInputData) => {
+    //todo
+    console.log('=====>', event);
+  };
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <VariableTextInputView
@@ -103,6 +108,7 @@ export const App = () => {
         blurOnSubmit={true}
         onSubmitEditing={sub}
         keyboardAppearance={'dark'}
+        onTextInput={onTextInput}
       />
       <View style={{ flexDirection: 'row', marginTop: 40 }}>
         <TouchableOpacity onPress={blur} style={{ marginLeft: 20 }}>
