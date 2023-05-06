@@ -2,12 +2,6 @@ import { StyleProp, TextStyle, ColorValue, NativeSyntheticEvent, TextInputChange
 import React from 'react';
 export interface IVTTextInputData {
     nativeEvent: {
-        previousText: string;
-        range: {
-            end: number;
-            start: number;
-        };
-        target: number;
         text: string;
     };
 }
@@ -27,9 +21,12 @@ export interface IInserTextAttachmentItem {
     emojiTag?: string;
     emojiUri?: string;
 }
+export interface IOnTagsType {
+    tag: string;
+    keyWord: string;
+}
 interface IProps {
     onMention?: () => void;
-    onTag?: () => void;
     style?: StyleProp<TextStyle> | undefined;
     placeholder?: string;
     placeholderTextColor?: ColorValue;
@@ -39,9 +36,9 @@ interface IProps {
     value?: string;
     maxTextLength?: number;
     text?: string;
-    tags?: string[];
     blurOnSubmit?: boolean;
-    onTextInput?: (e: IVTTextInputData) => void;
+    onTextInput?: (event: IVTTextInputData) => void;
+    onAndroidTextInput?: (event: IVTTextInputData) => void;
     onContentSizeChange?: (e: NativeSyntheticEvent<TextInputContentSizeChangeEventData>) => void;
     underlineColorAndroid?: ColorValue;
     onAndroidChange?: (e: NativeSyntheticEvent<TextInputChangeEventData>) => void;
@@ -57,6 +54,7 @@ export type IATTextViewBase = {
     insertEmoji: (img: IInserTextAttachmentItem) => void;
     insertMentions: (data: IInserTextAttachmentItem) => void;
     changeAttributedText: (data: IInserTextAttachmentItem[]) => void;
+    dismissTag: () => void;
 };
 export type IATTextViewRef = React.ForwardedRef<IATTextViewBase>;
 declare const VariableTextInputView: React.ForwardRefExoticComponent<IProps & React.RefAttributes<IATTextViewBase>>;
