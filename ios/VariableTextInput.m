@@ -485,7 +485,6 @@ static NSString * const kTextAlignmentKey = @"textAlignment";
            NSAttributedString *newAttriString = [self getEmojiText:defaultPasteboard.string];
            [self insertAttriStringToTextview:newAttriString];
         }
-        return;
     }
     [super paste:sender];
 }

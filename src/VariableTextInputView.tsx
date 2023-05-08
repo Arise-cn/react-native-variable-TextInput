@@ -6,10 +6,8 @@ import {
   NativeSyntheticEvent,
   TextInputChangeEventData,
   NativeModules,
-  ImageResolvedAssetSource,
   StyleSheet,
   processColor,
-  ProcessedColorValue,
   TextInputContentSizeChangeEventData,
   Platform,
   KeyboardTypeOptions,
@@ -22,44 +20,18 @@ import React, {
 } from 'react';
 import { UIManager } from 'react-native';
 import { findNodeHandle } from 'react-native';
+import type {
+  IATTextViewBase,
+  IEmojiData,
+  IInserTextAttachmentItem,
+  IVTTextInputData,
+  IonMentionData,
+  MentionData,
+  PrivateItemData,
+} from './exTypes';
+import { deletKeyBord, getAttributedTextArr } from './Util';
 const VariableTextInputViewManager = NativeModules.VariableTextInputViewManager;
-export interface IVTTextInputData {
-  nativeEvent: {
-    text: string;
-  };
-}
-export enum ITextType {
-  emoji = 1,
-  normal = 0,
-  tagText = 2,
-}
-interface PrivateItemData {
-  type: ITextType;
-  text?: string;
-  color?: ProcessedColorValue | null | undefined;
-  tag?: '@' | '#';
-  name?: string;
-  id?: string;
-  img?: ImageResolvedAssetSource; //emoji图片
-  emojiTag?: string; //[微笑] //emojitag
-}
-export interface IInserTextAttachmentItem {
-  type: ITextType;
-  text?: string;
-  color?: ColorValue;
-  tag?: '@' | '#';
-  name?: string;
-  id?: string;
-  img?: ImageResolvedAssetSource; //emoji图片
-  emojiTag?: string; //[微笑] //emojitag
-  emojiUri?: string;
-}
-export interface IOnTagsType {
-  tag: string;
-  keyWord: string;
-}
-interface IProps {
-  onMention?: () => void;
+interface INativeProps {
   style?: StyleProp<TextStyle> | undefined;
   placeholder?: string;
   placeholderTextColor?: ColorValue;
@@ -85,14 +57,28 @@ interface IProps {
   onAndroidSubmitEditing?: (text: string) => void;
   submitBehavior?: 'submit';
 }
-export type IATTextViewBase = {
-  focus: () => void;
-  blur: () => void;
-  insertEmoji: (img: IInserTextAttachmentItem) => void;
-  insertMentions: (data: IInserTextAttachmentItem) => void;
-  changeAttributedText: (data: IInserTextAttachmentItem[]) => void;
-  dismissTag: () => void;
-};
+interface IProps {
+  style?: StyleProp<TextStyle> | undefined;
+  placeholder?: string;
+  placeholderTextColor?: ColorValue;
+  keyboardAppearance?: 'default' | 'light' | 'dark'; //ios only
+  onChange?: (e: NativeSyntheticEvent<TextInputChangeEventData>) => void;
+  onChangeText?: (text: string) => void;
+  maxTextLength?: number;
+  text?: string;
+  blurOnSubmit?: boolean;
+  onTextInput?: (event: IVTTextInputData) => void;
+  onContentSizeChange?: (
+    e: NativeSyntheticEvent<TextInputContentSizeChangeEventData>
+  ) => void;
+  underlineColorAndroid?: ColorValue;
+  keyboardType?: KeyboardTypeOptions | undefined;
+  onSubmitEditing?: (text: string) => void;
+  submitBehavior?: 'submit';
+  emojiData?: IEmojiData[];
+  mentions?: string[]; //'@','#'
+  onMention?: (data: IonMentionData) => void;
+}
 export type IATTextViewRef = React.ForwardedRef<IATTextViewBase>;
 
 const VariableTextInputView = forwardRef(
@@ -101,9 +87,45 @@ const VariableTextInputView = forwardRef(
       undefined
     );
     const nativeRef = useRef(null);
+    const [mention, setMention] = useState<string>('');
+    const [keyWord, setKeyWord] = useState<string>('');
+    const [textValue, setTextValue] = useState<string>('');
     const _onChange = (e: NativeSyntheticEvent<TextInputChangeEventData>) => {
-      props.onChangeText && props.onChangeText(e.nativeEvent.text);
-      props.onChange && props.onChange(e);
+      const text = e.nativeEvent.text;
+      setTextValue(text);
+      if (!!props.mentions && props.mentions.length > 0 && text.length > 0) {
+        const lastStr = text.slice(-1);
+        if (props.mentions.includes(lastStr)) {
+          setMention(lastStr);
+          props.onMention && props.onMention({ mention: lastStr, keyWord: '' });
+        }
+        if (!!mention) {
+          const result = text.split(mention).pop();
+          const mentionData: IonMentionData = {
+            mention,
+            keyWord: result || '',
+          };
+          setKeyWord(result || '');
+          props.onMention && props.onMention(mentionData);
+        }
+        props.onChangeText && props.onChangeText(text);
+        props.onChange && props.onChange(e);
+      }
+    };
+    // useEffect(() => {
+    //   if (!!props.text) {
+    //     const attStrArr: IInserTextAttachmentItem[] = getAttributedTextArr(
+    //       props.text,
+    //       props.emojiData
+    //     );
+    //     changeAttributedText(attStrArr);
+    //   }
+    // }, [props.text]);
+    const clearMention = () => {
+      if (!!mention) {
+        setMention('');
+        setKeyWord('');
+      }
     };
     const focus = () => {
       if (Platform.OS === 'android') {
@@ -118,6 +140,7 @@ const VariableTextInputView = forwardRef(
       } else {
         VariableTextInputViewManager.blur();
       }
+      clearMention();
     };
     const callNativeMethod = (methodName: string, data?: any) => {
       const reactTag = findNodeHandle(nativeRef.current);
@@ -186,28 +209,16 @@ const VariableTextInputView = forwardRef(
         setCurrentHeight(event.nativeEvent.contentSize.height);
       }
     };
-    const onAndroidContentSizeChange = (event: any) => {
-      const { style } = props;
-      const styles = StyleSheet.flatten(style);
-      if (styles.height === undefined) {
-        const contentSizeHeight = event.nativeEvent.contentSize.height;
-        if (!!styles.maxHeight && contentSizeHeight > styles.maxHeight) {
-          setCurrentHeight(parseFloat(`${styles.maxHeight}`));
-          return;
-        }
-        if (!!styles.minHeight && contentSizeHeight < styles.minHeight) {
-          setCurrentHeight(parseFloat(`${styles.minHeight}`));
-          return;
-        }
-        setCurrentHeight(event.nativeEvent.contentSize.height);
-      }
-    };
-    const dismissTag = () => {
-      if (Platform.OS === 'android') {
-        callNativeMethod('dismissTag');
-      } else {
-        VariableTextInputViewManager.dismissTag();
-      }
+    const insertMentionAndDelateKeyword = (data: MentionData) => {
+      const item: IInserTextAttachmentItem = {
+        type: 2,
+        ...data,
+      };
+      const str = deletKeyBord(textValue, `${mention}${keyWord}`);
+      const arr = getAttributedTextArr(str, props.emojiData);
+      const newAttArr = [...arr, item];
+      changeAttributedText(newAttArr);
+      clearMention();
     };
     useImperativeHandle(ref, () => {
       return {
@@ -216,15 +227,9 @@ const VariableTextInputView = forwardRef(
         insertEmoji: insertEmoji,
         insertMentions: insertMentions,
         changeAttributedText: changeAttributedText,
-        dismissTag: dismissTag,
+        insertMentionAndDelateKeyword: insertMentionAndDelateKeyword,
       };
     });
-    const onAndroidChange = (
-      e: NativeSyntheticEvent<TextInputChangeEventData>
-    ) => {
-      props.onChangeText && props.onChangeText(e.nativeEvent.text);
-      props.onChange && props.onChange(e);
-    };
     const onAndroidSubmitEditing = () => {};
     const onAndroidTextInput = (e: IVTTextInputData) => {
       props.onTextInput && props.onTextInput(e);
@@ -235,8 +240,8 @@ const VariableTextInputView = forwardRef(
         ref={nativeRef}
         onChange={_onChange}
         onContentSizeChange={onContentSizeChange}
-        onAndroidChange={onAndroidChange}
-        onAndroidContentSizeChange={onAndroidContentSizeChange}
+        onAndroidChange={_onChange}
+        onAndroidContentSizeChange={onContentSizeChange}
         {...props}
         onAndroidSubmitEditing={onAndroidSubmitEditing}
         onAndroidTextInput={onAndroidTextInput}
@@ -245,7 +250,7 @@ const VariableTextInputView = forwardRef(
     );
   }
 );
-const RNTVariableTextInputView = requireNativeComponent<IProps>(
+const RNTVariableTextInputView = requireNativeComponent<INativeProps>(
   'VariableTextInputView'
 );
 export { VariableTextInputView };

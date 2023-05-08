@@ -12,23 +12,13 @@ import {
   IATTextViewBase,
   IInserTextAttachmentItem,
   ITextType,
-  IVTTextInputData,
+  IonMentionData,
   VariableTextInputView,
 } from 'react-native-variable-text-input';
 export const App = () => {
   const inPutRef = React.createRef<IATTextViewBase>();
   const onChangeText = (text: string) => {
-    console.log('输入框数据====>', text);
-    const triggerRegEx = /({([^{^}]*)}\[([^[]*)]\(([^(^)]*)\))/gi;
-    const singleGroupTriggerRegEx = /({[^{^}]*}\[[^[]*]\([^(^)]*\))/gi;
-    const matchStr = text.match(triggerRegEx);
-    if (matchStr !== null) {
-      const subStrArr = text.split(triggerRegEx);
-      subStrArr.forEach((item) => {
-        const arr = item.match(singleGroupTriggerRegEx);
-        console.log('==处理后的数据==>', arr);
-      });
-    }
+    console.log('====>', text);
   };
   const insertEmoji = () => {
     const data: ImageResolvedAssetSource = Image.resolveAssetSource(
@@ -92,9 +82,9 @@ export const App = () => {
   const sub = (e: any) => {
     console.log('rrrrr===>', e);
   };
-  const onTextInput = (event: IVTTextInputData) => {
+  const onMention = (data: IonMentionData) => {
     //todo
-    console.log('=====>', event);
+    console.log('onMentions===>', data);
   };
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -107,8 +97,9 @@ export const App = () => {
         underlineColorAndroid={'rgba(0,0,0,0)'}
         blurOnSubmit={true}
         onSubmitEditing={sub}
+        mentions={['@', '#']}
+        onMention={onMention}
         keyboardAppearance={'dark'}
-        onTextInput={onTextInput}
       />
       <View style={{ flexDirection: 'row', marginTop: 40 }}>
         <TouchableOpacity onPress={blur} style={{ marginLeft: 20 }}>
@@ -155,7 +146,5 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     width: '100%',
-    minHeight: 100,
-    borderRadius: 5,
   },
 });

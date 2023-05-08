@@ -239,6 +239,7 @@ RCT_EXPORT_METHOD(dismissTag)
   [self setTextAttachment:image tag:emojiTag size:textSize copyStr:copyStr];
   
 }
+
 -(void)setAttributedText:(NSArray *)arr{
   NSMutableAttributedString *attStr = [[NSMutableAttributedString alloc]init];
   UIFont *textFont = [_textInput.defultTypingAttributes objectForKey:@"NSFont"];
