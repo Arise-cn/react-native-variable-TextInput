@@ -108,9 +108,9 @@ const VariableTextInputView = forwardRef(
           setKeyWord(result || '');
           props.onMention && props.onMention(mentionData);
         }
-        props.onChangeText && props.onChangeText(text);
-        props.onChange && props.onChange(e);
       }
+      props.onChangeText && props.onChangeText(text);
+      props.onChange && props.onChange(e);
     };
     // useEffect(() => {
     //   if (!!props.text) {
