@@ -474,20 +474,21 @@ static NSString * const kTextAlignmentKey = @"textAlignment";
 
 #pragma mark copy cut part
 
--(void)paste:(id)sender{
-    UIPasteboard *defaultPasteboard = [UIPasteboard generalPasteboard];
-    if(defaultPasteboard.string.length>0){
-        NSRange range = self.selectedRange;
-        if(range.location == NSNotFound){
-            range.location = self.text.length;
-        }
-        if([self.delegate textView:self shouldChangeTextInRange:range replacementText:defaultPasteboard.string]){
-           NSAttributedString *newAttriString = [self getEmojiText:defaultPasteboard.string];
-           [self insertAttriStringToTextview:newAttriString];
-        }
-    }
-    [super paste:sender];
-}
+//-(void)paste:(id)sender{
+//    UIPasteboard *defaultPasteboard = [UIPasteboard generalPasteboard];
+//    if(defaultPasteboard.string.length>0){
+//        NSRange range = self.selectedRange;
+//        if(range.location == NSNotFound){
+//            range.location = self.text.length;
+//        }
+//        if([self.delegate textView:self shouldChangeTextInRange:range replacementText:defaultPasteboard.string]){
+//           NSAttributedString *newAttriString = [self getEmojiText:defaultPasteboard.string];
+//           [self insertAttriStringToTextview:newAttriString];
+//        }
+//        return;
+//    }
+//    [super paste:sender];
+//}
 
 -(void)insertAttriStringToTextview:(NSAttributedString*)attriString{
     NSMutableAttributedString *mulAttriString = [[NSMutableAttributedString alloc]initWithAttributedString:self.attributedText];

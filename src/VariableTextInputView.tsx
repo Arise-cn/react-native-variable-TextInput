@@ -116,7 +116,7 @@ const VariableTextInputView = forwardRef(
     //   if (!!props.text) {
     //     const attStrArr: IInserTextAttachmentItem[] = getAttributedTextArr(
     //       props.text,
-    //       props.emojiData
+    //       !!props.emojiData ? props.emojiData : []
     //     );
     //     changeAttributedText(attStrArr);
     //   }
