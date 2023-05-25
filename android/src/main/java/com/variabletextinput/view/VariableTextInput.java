@@ -72,6 +72,7 @@ public class VariableTextInput extends LinearLayout {
   private @Nullable String mReturnKeyType;
   private boolean mDisableFullscreen;
   private static final InputFilter[] EMPTY_FILTERS = new InputFilter[0];
+  private int mEditMaxLength;
   public VariableTextInput(Context context) {
     super(context);
     this.mContext = context;
@@ -613,6 +614,7 @@ public class VariableTextInput extends LinearLayout {
         }
       }
     } else {
+      mEditMaxLength = maxLength;
       if (currentFilters.length > 0) {
         newFilters = currentFilters;
         boolean replaced = false;
@@ -739,6 +741,10 @@ public class VariableTextInput extends LinearLayout {
         editText.setText(mSpannableString);
         editText.setSelection(endIndex);
         editText.getText().replace(startIndex, endIndex, richTextBean.content);
+        //设置实际限制输入长度
+        if (mEditMaxLength > 0) {
+          setMaxLength(mEditMaxLength + richTextBean.content.length());
+        }
       }
     }
   }
@@ -765,6 +771,10 @@ public class VariableTextInput extends LinearLayout {
       editText.setText(mSpannableString);
       editText.setSelection(endIndex);
       editText.getText().replace(startIndex, endIndex, richTextBean.content);
+      //设置实际限制输入长度
+      if (mEditMaxLength > 0) {
+        setMaxLength(mEditMaxLength + richTextBean.content.length());
+      }
     }
   }
 }
