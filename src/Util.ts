@@ -94,6 +94,12 @@ const getAttributedTextArr = (str: string) => {
             newAtt.push(normalItem);
           }
         });
+      } else {
+        const normalItem: IInserTextAttachmentItem = {
+          type: 0,
+          text: item,
+        };
+        newAtt.push(normalItem);
       }
     }
   });

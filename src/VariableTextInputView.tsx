@@ -102,7 +102,6 @@ const VariableTextInputView = forwardRef(
     const [hasKeyWord, setHasKeyWord] = useState<boolean>(false);
     const _onChange = (e: NativeSyntheticEvent<TextInputChangeEventData>) => {
       const text = e.nativeEvent.text;
-      setTextValue(text);
       if (!!props.mentions && props.mentions.length > 0 && text.length > 0) {
         const lastStr = text.slice(-1);
         const isMention = props.mentions.filter((item) => item.tag === lastStr);
@@ -123,7 +122,7 @@ const VariableTextInputView = forwardRef(
         }
       }
       if (textValue.length > text.length) {
-        const lastStr = text.slice(-1);
+        const lastStr = textValue.slice(-1);
         const isMention = !!props.mentions
           ? props.mentions?.filter((item) => item.tag === lastStr)
           : [];
@@ -136,6 +135,7 @@ const VariableTextInputView = forwardRef(
       }
       props.onChangeText && props.onChangeText(text);
       props.onChange && props.onChange(e);
+      setTextValue(text);
     };
     useEffect(() => {
       if (!!props.mentions) {

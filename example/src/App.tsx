@@ -70,6 +70,7 @@ export const App = () => {
   const onAddMention = () => {
     const arr = getAttributedTextArr(textValue);
     inPutRef.current?.changeAttributedText([...arr, { type: 0, text: '@' }]);
+    console.log('ddd');
   };
   const onUserSelect = (data: IUserDataType) => {
     inPutRef.current?.insertMentionAndDelateKeyword({
