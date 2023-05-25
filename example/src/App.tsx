@@ -12,15 +12,18 @@ import {
   IATTextViewBase,
   IonMentionData,
   VariableTextInputView,
+  getAttributedTextArr,
 } from 'react-native-variable-text-input';
 import { EmojiList } from './EmojiList';
+import { IUserDataType, UserList } from './UserList';
+import type { IInputEmojiDataType } from './assets';
 export const App = () => {
   const inPutRef = React.createRef<IATTextViewBase>();
   const [keyBoardHeight, setKeyBoardHeight] = useState<number>(0);
-  // const [showUser, setShowUser] = useState<boolean>(false);
-  // const [showTags, setShowTags] = useState<boolean>(false);
+  const [showUser, setShowUser] = useState<boolean>(false);
+  const [keyWord, setKeyWord] = useState<string>('');
   const [showEmoji, setShowEmoji] = useState<boolean>(false);
-  // const [ setTextValue] = useState<string>('');
+  const [textValue, setTextValue] = useState<string>('');
   React.useEffect(() => {
     const showListener = Keyboard.addListener(
       'keyboardDidShow',
@@ -42,15 +45,17 @@ export const App = () => {
     // setKeyBoardHeight(0);
   };
   const onChangeText = (text: string) => {
-    // setTextValue(text);
-    console.log('text===>', text);
+    setTextValue(text);
   };
   const sub = (e: any) => {
     console.log('rrrrr===>', e);
   };
   const onMention = (data: IonMentionData) => {
-    //todo
-    console.log('onMentions===>', data);
+    setKeyWord(data.keyWord);
+    setShowUser(true);
+  };
+  const onEndMention = () => {
+    setShowUser(false);
   };
   const onTouchEmView = () => {
     setKeyBoardHeight(0);
@@ -60,6 +65,21 @@ export const App = () => {
     !showEmoji && inPutRef.current?.blur();
     showEmoji && inPutRef.current?.focus();
     setShowEmoji(!showEmoji);
+    showUser && setShowUser(false);
+  };
+  const onAddMention = () => {
+    const arr = getAttributedTextArr(textValue);
+    inPutRef.current?.changeAttributedText([...arr, { type: 0, text: '@' }]);
+  };
+  const onUserSelect = (data: IUserDataType) => {
+    inPutRef.current?.insertMentionAndDelateKeyword({
+      name: data.userName,
+      id: data.userId,
+    });
+    setShowUser(false);
+  };
+  const onEmojiSelect = (data: IInputEmojiDataType) => {
+    inPutRef.current?.insertEmoji({ ...data });
   };
   return (
     <View style={styles.container}>
@@ -70,21 +90,41 @@ export const App = () => {
           style={{ flex: 1 }}
         />
       </View>
+      {showUser && <UserList keyWord={keyWord} onSelect={onUserSelect} />}
       <View>
         <View style={styles.hor}>
           <VariableTextInputView
             style={styles.box}
             ref={inPutRef}
             onChangeText={onChangeText}
-            placeholder={'测试测试测试'}
+            placeholder={'TestTest'}
             placeholderTextColor={'#fff'}
             underlineColorAndroid={'rgba(0,0,0,0)'}
             blurOnSubmit={true}
+            maxTextLength={20}
             onSubmitEditing={sub}
-            mentions={['@', '#']}
+            mentions={[
+              { tag: '@', color: 'red' },
+              { tag: '#', color: 'blue' },
+            ]}
             onMention={onMention}
+            onEndMention={onEndMention}
             keyboardAppearance={'dark'}
           />
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={{ marginLeft: 10 }}
+            onPress={onAddMention}
+          >
+            <Text
+              style={[
+                styles.sendText,
+                { color: '#000', fontSize: 30, fontWeight: 'normal' },
+              ]}
+            >
+              @
+            </Text>
+          </TouchableOpacity>
           <TouchableOpacity
             activeOpacity={0.85}
             style={{ marginLeft: 10 }}
@@ -103,7 +143,11 @@ export const App = () => {
             <Text style={styles.sendText}>SEND</Text>
           </View>
         </View>
-        <EmojiList numColumns={6} keyBoardHeight={keyBoardHeight} />
+        <EmojiList
+          numColumns={6}
+          keyBoardHeight={keyBoardHeight}
+          onSelect={onEmojiSelect}
+        />
       </View>
     </View>
   );

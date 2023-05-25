@@ -82,7 +82,6 @@ static NSString * const kTextAlignmentKey = @"textAlignment";
     self.placeholderTextView.isAccessibilityElement = NO;
     self.placeholderTextView.contentOffset = self.contentOffset;
     self.placeholderTextView.contentInset = self.contentInset;
-
     if ([self.placeholderTextView respondsToSelector:@selector(setSelectable:)]) {
         self.placeholderTextView.selectable = NO;
     }
@@ -344,7 +343,8 @@ static NSString * const kTextAlignmentKey = @"textAlignment";
           });
         }
     }
-  if (self.max_TextLength>0 && newStr.length>self.max_TextLength) {
+  NSInteger maxLength =[self.textStorage getShowLength];
+  if (self.max_TextLength>0 &&![text isEqualToString:@""] && maxLength==self.max_TextLength) {
     return NO;
   }
   if (_onTextInput) {

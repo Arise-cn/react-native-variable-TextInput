@@ -62,6 +62,23 @@ RCT_CUSTOM_VIEW_PROPERTY(fontSize, NSNumber, VariableTextInput)
     self.textInput.defultTypingAttributes = self.textInput.typingAttributes;
   }
 }
+RCT_CUSTOM_VIEW_PROPERTY(fontFamily, NSString, VariableTextInput)
+{
+    view.font = [RCTFont updateFont:view.font withFamily:json?:defaultView.font.familyName];
+    NSDictionary *dic = self.textInput.typingAttributes;
+    if (dic != nil) {
+      self.textInput.defultTypingAttributes = self.textInput.typingAttributes;
+    }
+
+}
+RCT_CUSTOM_VIEW_PROPERTY(fontWeight, NSString, VariableTextInput){
+    view.font = [RCTFont updateFont:view.font withWeight:json?:@(defaultView.font.pointSize)];
+    NSDictionary *dic = self.textInput.typingAttributes;
+    if (dic != nil) {
+      self.textInput.defultTypingAttributes = self.textInput.typingAttributes;
+    }
+
+}
 RCT_EXPORT_METHOD(focus)
 {
   dispatch_async(dispatch_get_main_queue(), ^{
@@ -183,7 +200,9 @@ RCT_EXPORT_METHOD(dismissTag)
 -(Boolean)isOutMaxLength:(NSString *)str{
   NSString *oldStr = [_textInput getStrContentInRange:NSMakeRange(0, _textInput.attributedText.length)];
   NSString *newStr = [NSString stringWithFormat:@"%@%@",oldStr,str];
-  if (_textInput.maxTextLength>0 && newStr.length>_textInput.maxTextLength) {
+    NSInteger oldLength = [_textInput.textStorage getShowLength];
+    NSInteger newLength = oldLength + str.length;
+  if (_textInput.maxTextLength>0 && newLength>_textInput.maxTextLength) {
     return YES;
   }else{
     return NO;
@@ -254,7 +273,14 @@ RCT_EXPORT_METHOD(dismissTag)
       NSAttributedString *text = [[NSAttributedString alloc]initWithString:str];
       NSMutableAttributedString *normMutaStr = [[NSMutableAttributedString alloc]initWithAttributedString:text];
       [normMutaStr addAttributes:_textInput.defultTypingAttributes range:NSMakeRange(0, normMutaStr.length)];
-      [attStr appendAttributedString:normMutaStr];
+        NSMutableAttributedString *newStr =[[NSMutableAttributedString alloc]initWithAttributedString:attStr];
+        [newStr appendAttributedString:normMutaStr];
+        if(_textInput.maxTextLength>0 && [newStr getShowLength]>_textInput.maxTextLength){
+            //todo
+        }else{
+            [attStr appendAttributedString:normMutaStr];
+        }
+      
     }
     if(type == 1){
       NSDictionary *rnImageData = dic;
@@ -263,14 +289,17 @@ RCT_EXPORT_METHOD(dismissTag)
       emojiTextAttachment.emojiTag = rnImageData[@"emojiTag"];
       UIImage *image =[RCTConvert UIImage:rnImageData[@"img"]];
       emojiTextAttachment.showCopyStr =rnImageData[@"emojiTag"];
-      if ([self isOutMaxLength:rnImageData[@"emojiTag"]]) {
-        return;
-      }
       emojiTextAttachment.image = image;
       CGFloat paddingTop = textFont.lineHeight -textFont.pointSize;
       emojiTextAttachment.react = CGRectMake(0, -paddingTop, textFont.lineHeight, textFont.lineHeight);
       NSAttributedString *str = [NSAttributedString attributedStringWithAttachment:emojiTextAttachment];
-      [attStr appendAttributedString:str];
+        NSMutableAttributedString *newStr =[[NSMutableAttributedString alloc]initWithAttributedString:attStr];
+        [newStr appendAttributedString:str];
+        if(_textInput.maxTextLength>0 && [newStr getShowLength]>_textInput.maxTextLength){
+            //todo
+        }else{
+            [attStr appendAttributedString:str];
+        }
     }
     if(type == 2){
       NSDictionary *mention =dic;
@@ -291,7 +320,13 @@ RCT_EXPORT_METHOD(dismissTag)
       emojiTextAttachment.showCopyStr = copyStr;
       emojiTextAttachment.react = CGRectMake(0, -oldpaddingTop, textSize.width, textSize.height);
       NSAttributedString *str = [NSAttributedString attributedStringWithAttachment:emojiTextAttachment];
-      [attStr appendAttributedString:str];
+        NSMutableAttributedString *newStr =[[NSMutableAttributedString alloc]initWithAttributedString:attStr];
+        [newStr appendAttributedString:str];
+        if(_textInput.maxTextLength>0 && [newStr getShowLength]>_textInput.maxTextLength){
+            //todo
+        }else{
+            [attStr appendAttributedString:str];
+        }
     }
   }];
   [attStr addAttributes:_textInput.defultTypingAttributes range:NSMakeRange(0, attStr.length)];

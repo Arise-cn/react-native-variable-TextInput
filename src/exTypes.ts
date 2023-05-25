@@ -12,7 +12,6 @@ export type IATTextViewBase = {
   insertMentionAndDelateKeyword: (data: MentionData) => void;
 };
 export type MentionData = {
-  color: ColorValue;
   name: string;
   id: string;
 };
@@ -34,7 +33,7 @@ export interface PrivateItemData {
   type: ITextType;
   text?: string;
   color?: ProcessedColorValue | null | undefined;
-  tag?: '@' | '#';
+  tag?: string;
   name?: string;
   id?: string;
   img?: ImageResolvedAssetSource; //emoji图片
@@ -44,7 +43,7 @@ export interface IInserTextAttachmentItem {
   type: ITextType;
   text?: string;
   color?: ColorValue;
-  tag?: '@' | '#';
+  tag?: string;
   name?: string;
   id?: string;
   img?: ImageResolvedAssetSource; //emoji图片
@@ -58,4 +57,8 @@ export interface IOnTagsType {
 export interface IonMentionData {
   mention: string;
   keyWord: string;
+}
+export interface IMentionData {
+  tag: string;
+  color: ColorValue;
 }

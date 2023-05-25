@@ -1,4 +1,8 @@
-import type { IEmojiData, IInserTextAttachmentItem } from './exTypes';
+import type {
+  IEmojiData,
+  IInserTextAttachmentItem,
+  IMentionData,
+} from './exTypes';
 
 /**
  * {"@"}[userName](id)
@@ -6,7 +10,14 @@ import type { IEmojiData, IInserTextAttachmentItem } from './exTypes';
 const regex = /({[^{}[\]()]*}\[[^[\]()]*]\([^(){}]*\))/g;
 const singleRegex = /{([^\]}]*)}\[([^\]]*)]\(([^)]*)\)/;
 const emojiPattern = /\[[^\]]*\]|(\w+)/g;
-
+let mentions: IMentionData[] = [];
+let emojiData: IEmojiData[] = [];
+const setUTilMention = (data: IMentionData[]) => {
+  mentions = data;
+};
+const setUTilEmojiData = (data: IEmojiData[]) => {
+  emojiData = data;
+};
 /**
  * Delete keyboard when inserting @ and #
  */
@@ -33,21 +44,31 @@ const singleArr = (str: string) => {
   const result = str.match(singleRegex)?.slice(1);
   return result;
 };
+const getMentionColor = (tag: string) => {
+  const colorArr = mentions.filter((mItem) => mItem.tag === tag);
+  const mentionData = colorArr[0];
+  const color = !!mentionData ? mentionData.color : 'red';
+  return color;
+};
 /**
  * getAttArr
  */
-const getAttributedTextArr = (str: string, emojiData?: IEmojiData[]) => {
+const getAttributedTextArr = (str: string) => {
   const arr = handleText(str);
   const newAtt: IInserTextAttachmentItem[] = [];
   arr.forEach((item) => {
     const matchResult = singleArr(item);
     if (!!matchResult) {
+      const tag = matchResult[0];
+      const name = matchResult[1];
+      const id = matchResult[2];
+      const color = getMentionColor(tag || '');
       const attItem: IInserTextAttachmentItem = {
         type: 2,
-        tag: '@',
-        name: matchResult[1],
-        id: matchResult[2],
-        color: '#CEDA39',
+        tag,
+        name,
+        id,
+        color,
       };
       newAtt.push(attItem);
     } else {
@@ -82,4 +103,13 @@ const getEmojiStrArr = (str: string) => {
   const arr = str.match(emojiPattern)?.filter(Boolean);
   return arr;
 };
-export { getAttributedTextArr, deletKeyBord, regex, singleRegex, emojiPattern };
+export {
+  getAttributedTextArr,
+  deletKeyBord,
+  regex,
+  singleRegex,
+  emojiPattern,
+  setUTilMention,
+  setUTilEmojiData,
+  getMentionColor,
+};

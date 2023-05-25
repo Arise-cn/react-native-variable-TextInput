@@ -11,6 +11,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface NSAttributedString (EmojiExtension)
 - (NSString *)getPlainString;
+- (NSInteger)getShowLength;
 @end
 
 NS_ASSUME_NONNULL_END

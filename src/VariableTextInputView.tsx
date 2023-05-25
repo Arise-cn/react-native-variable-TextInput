@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import React, {
   forwardRef,
+  useEffect,
   useImperativeHandle,
   useRef,
   useState,
@@ -24,12 +25,19 @@ import type {
   IATTextViewBase,
   IEmojiData,
   IInserTextAttachmentItem,
+  IMentionData,
   IVTTextInputData,
   IonMentionData,
   MentionData,
   PrivateItemData,
 } from './exTypes';
-import { deletKeyBord, getAttributedTextArr } from './Util';
+import {
+  deletKeyBord,
+  getAttributedTextArr,
+  getMentionColor,
+  setUTilEmojiData,
+  setUTilMention,
+} from './Util';
 const VariableTextInputViewManager = NativeModules.VariableTextInputViewManager;
 interface INativeProps {
   style?: StyleProp<TextStyle> | undefined;
@@ -76,8 +84,9 @@ interface IProps {
   onSubmitEditing?: (text: string) => void;
   submitBehavior?: 'submit';
   emojiData?: IEmojiData[];
-  mentions?: string[]; //'@','#'
+  mentions?: IMentionData[]; //'@','#'
   onMention?: (data: IonMentionData) => void;
+  onEndMention?: () => void;
 }
 export type IATTextViewRef = React.ForwardedRef<IATTextViewBase>;
 
@@ -90,13 +99,17 @@ const VariableTextInputView = forwardRef(
     const [mention, setMention] = useState<string>('');
     const [keyWord, setKeyWord] = useState<string>('');
     const [textValue, setTextValue] = useState<string>('');
+    const [hasKeyWord, setHasKeyWord] = useState<boolean>(false);
     const _onChange = (e: NativeSyntheticEvent<TextInputChangeEventData>) => {
       const text = e.nativeEvent.text;
       setTextValue(text);
       if (!!props.mentions && props.mentions.length > 0 && text.length > 0) {
         const lastStr = text.slice(-1);
-        if (props.mentions.includes(lastStr)) {
+        const isMention = props.mentions.filter((item) => item.tag === lastStr);
+        if (isMention.length > 0) {
           setMention(lastStr);
+          setKeyWord('');
+          setHasKeyWord(true);
           props.onMention && props.onMention({ mention: lastStr, keyWord: '' });
         }
         if (!!mention) {
@@ -109,22 +122,36 @@ const VariableTextInputView = forwardRef(
           props.onMention && props.onMention(mentionData);
         }
       }
+      if (textValue.length > text.length) {
+        const lastStr = text.slice(-1);
+        const isMention = !!props.mentions
+          ? props.mentions?.filter((item) => item.tag === lastStr)
+          : [];
+        if (isMention.length > 0) {
+          setKeyWord('');
+          setMention('');
+          setHasKeyWord(false);
+          props.onEndMention && props.onEndMention();
+        }
+      }
       props.onChangeText && props.onChangeText(text);
       props.onChange && props.onChange(e);
     };
-    // useEffect(() => {
-    //   if (!!props.text) {
-    //     const attStrArr: IInserTextAttachmentItem[] = getAttributedTextArr(
-    //       props.text,
-    //       !!props.emojiData ? props.emojiData : []
-    //     );
-    //     changeAttributedText(attStrArr);
-    //   }
-    // }, [props.text]);
+    useEffect(() => {
+      if (!!props.mentions) {
+        setUTilMention(props.mentions);
+      }
+    }, [props.mentions]);
+    useEffect(() => {
+      if (!!props.emojiData) {
+        setUTilEmojiData(props.emojiData);
+      }
+    }, [props.emojiData]);
     const clearMention = () => {
       if (!!mention) {
         setMention('');
         setKeyWord('');
+        setHasKeyWord(false);
       }
     };
     const focus = () => {
@@ -213,10 +240,24 @@ const VariableTextInputView = forwardRef(
       const item: IInserTextAttachmentItem = {
         type: 2,
         ...data,
+        tag: mention,
+        color: getMentionColor(mention),
       };
-      const str = deletKeyBord(textValue, `${mention}${keyWord}`);
-      const arr = getAttributedTextArr(str, props.emojiData);
-      const newAttArr = [...arr, item];
+      const str = hasKeyWord
+        ? deletKeyBord(textValue, `${mention}${keyWord}`)
+        : textValue;
+      if (str.length === 0) {
+        changeAttributedText([item]);
+        clearMention();
+        return;
+      }
+      const arr = getAttributedTextArr(str);
+      const fiArr = arr.filter(
+        (fItem) =>
+          `${fItem.tag}${fItem.name}${fItem.id}` !==
+          `${mention}${data.name}${data.id}`
+      );
+      const newAttArr = [...fiArr, item];
       changeAttributedText(newAttArr);
       clearMention();
     };
