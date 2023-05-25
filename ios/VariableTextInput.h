@@ -61,6 +61,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, assign) CGFloat paddingVertical;
 @property (nonatomic, assign) CGFloat padding;
 @property (nonatomic, assign) BOOL blurOnSubmit;
+@property (assign, nonatomic) NSInteger max_TextLength;
 - (void)setPlaceholderVisibleForText:(NSString *)str;
 - (NSString *)getStrContentInRange:(NSRange)range;
 @end

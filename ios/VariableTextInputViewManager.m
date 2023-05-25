@@ -199,10 +199,9 @@ RCT_EXPORT_METHOD(dismissTag)
 }
 -(Boolean)isOutMaxLength:(NSString *)str{
   NSString *oldStr = [_textInput getStrContentInRange:NSMakeRange(0, _textInput.attributedText.length)];
-  NSString *newStr = [NSString stringWithFormat:@"%@%@",oldStr,str];
     NSInteger oldLength = [_textInput.textStorage getShowLength];
     NSInteger newLength = oldLength + str.length;
-  if (_textInput.maxTextLength>0 && newLength>_textInput.maxTextLength) {
+  if (_textInput.max_TextLength>0 && newLength>_textInput.max_TextLength) {
     return YES;
   }else{
     return NO;
@@ -275,7 +274,9 @@ RCT_EXPORT_METHOD(dismissTag)
       [normMutaStr addAttributes:_textInput.defultTypingAttributes range:NSMakeRange(0, normMutaStr.length)];
         NSMutableAttributedString *newStr =[[NSMutableAttributedString alloc]initWithAttributedString:attStr];
         [newStr appendAttributedString:normMutaStr];
-        if(_textInput.maxTextLength>0 && [newStr getShowLength]>_textInput.maxTextLength){
+        NSInteger len =[newStr getShowLength];
+        NSInteger maxL =_textInput.maxTextLength;
+        if(_textInput.max_TextLength>0 && len>_textInput.max_TextLength){
             //todo
         }else{
             [attStr appendAttributedString:normMutaStr];
@@ -295,7 +296,7 @@ RCT_EXPORT_METHOD(dismissTag)
       NSAttributedString *str = [NSAttributedString attributedStringWithAttachment:emojiTextAttachment];
         NSMutableAttributedString *newStr =[[NSMutableAttributedString alloc]initWithAttributedString:attStr];
         [newStr appendAttributedString:str];
-        if(_textInput.maxTextLength>0 && [newStr getShowLength]>_textInput.maxTextLength){
+        if(_textInput.max_TextLength>0 && [newStr getShowLength]>_textInput.max_TextLength){
             //todo
         }else{
             [attStr appendAttributedString:str];
@@ -322,7 +323,8 @@ RCT_EXPORT_METHOD(dismissTag)
       NSAttributedString *str = [NSAttributedString attributedStringWithAttachment:emojiTextAttachment];
         NSMutableAttributedString *newStr =[[NSMutableAttributedString alloc]initWithAttributedString:attStr];
         [newStr appendAttributedString:str];
-        if(_textInput.maxTextLength>0 && [newStr getShowLength]>_textInput.maxTextLength){
+        NSInteger len = [newStr getShowLength];
+        if(_textInput.max_TextLength>0 && len>_textInput.max_TextLength){
             //todo
         }else{
             [attStr appendAttributedString:str];

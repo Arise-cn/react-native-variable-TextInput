@@ -31,7 +31,6 @@ static NSString * const kTextAlignmentKey = @"textAlignment";
 @property (assign, nonatomic) NSInteger cursorLocation; /// 光标位置
 
 @property (strong, nonatomic) UITextView *placeholderTextView;
-@property (assign, nonatomic) NSInteger max_TextLength;
 @property (strong, nonatomic) UIColor *attributed_TextColor;
 @property (nonatomic, weak) UIResponder *overrideNextResponder;
 @end
