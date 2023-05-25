@@ -741,10 +741,6 @@ public class VariableTextInput extends LinearLayout {
         editText.setText(mSpannableString);
         editText.setSelection(endIndex);
         editText.getText().replace(startIndex, endIndex, richTextBean.content);
-        //设置实际限制输入长度
-        if (mEditMaxLength > 0) {
-          setMaxLength(mEditMaxLength + richTextBean.content.length());
-        }
       }
     }
   }
@@ -759,9 +755,15 @@ public class VariableTextInput extends LinearLayout {
   }
 
   private void insertMentions(RichTextBean richTextBean) {
-    int startIndex = editText.getSelectionStart();
-    int endIndex = startIndex + richTextBean.tag.length() + richTextBean.name.length();
     if (editText.getText() != null) {
+      int mentionLength = richTextBean.tag.length() + richTextBean.name.length();
+      if (mEditMaxLength > 0 && mEditMaxLength - editText.length() < mentionLength) return;
+
+      mEditMaxLength = mEditMaxLength + richTextBean.content.length() - richTextBean.tag.length() - richTextBean.name.length();
+      setMaxLength(mEditMaxLength);
+
+      int startIndex = editText.getSelectionStart();
+      int endIndex = startIndex + richTextBean.tag.length() + richTextBean.name.length();
       editText.getText().insert(startIndex, richTextBean.tag + richTextBean.name);
       Bitmap bitmap = BitmapUtil.getTextBitmap(richTextBean.tag + richTextBean.name, editText.getTypeface(),
           editText.getTextSize(), richTextBean.color);
@@ -771,10 +773,6 @@ public class VariableTextInput extends LinearLayout {
       editText.setText(mSpannableString);
       editText.setSelection(endIndex);
       editText.getText().replace(startIndex, endIndex, richTextBean.content);
-      //设置实际限制输入长度
-      if (mEditMaxLength > 0) {
-        setMaxLength(mEditMaxLength + richTextBean.content.length());
-      }
     }
   }
 }
