@@ -8,8 +8,6 @@ import androidx.appcompat.widget.AppCompatEditText;
 
 public class VariableEditText extends AppCompatEditText {
 
-  private OnMenuItemCallBack mOnMenuItemCallBack;
-
   private @Nullable
   String mSubmitBehavior = null;
 
@@ -24,6 +22,7 @@ public class VariableEditText extends AppCompatEditText {
   public VariableEditText(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
   }
+
   public boolean shouldSubmitOnReturn() {
     String submitBehavior = getSubmitBehavior();
     boolean shouldSubmit;
@@ -37,9 +36,11 @@ public class VariableEditText extends AppCompatEditText {
 
     return shouldSubmit;
   }
+
   public void setSubmitBehavior(String submitBehavior) {
     mSubmitBehavior = submitBehavior;
   }
+
   public boolean shouldBlurOnReturn() {
     String submitBehavior = getSubmitBehavior();
     boolean shouldBlur;
@@ -53,9 +54,11 @@ public class VariableEditText extends AppCompatEditText {
 
     return shouldBlur;
   }
+
   public String getSubmitBehavior() {
     return mSubmitBehavior;
   }
+
   @Override
   public boolean isLayoutRequested() {
     // If we are watching and updating container height based on content size
@@ -64,33 +67,5 @@ public class VariableEditText extends AppCompatEditText {
     // is to add another prop that determines whether we should scroll to end
     // of text.
     return false;
-  }
-
-  @Override
-  public boolean onTextContextMenuItem(int id) {
-    switch (id) {
-      case android.R.id.cut:
-        mOnMenuItemCallBack.onCut();
-        return true;
-      case android.R.id.copy:
-        mOnMenuItemCallBack.onCopy();
-        return true;
-      case android.R.id.paste:
-        mOnMenuItemCallBack.onPaste();
-        return true;
-    }
-    return super.onTextContextMenuItem(id);
-  }
-
-  public void setOnMenuItemCallBack(OnMenuItemCallBack onMenuItemCallBack) {
-    mOnMenuItemCallBack = onMenuItemCallBack;
-  }
-
-  public interface OnMenuItemCallBack {
-    void onCut();
-
-    void onCopy();
-
-    void onPaste();
   }
 }
