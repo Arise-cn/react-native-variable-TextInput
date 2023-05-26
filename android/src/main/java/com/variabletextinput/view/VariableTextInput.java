@@ -72,7 +72,7 @@ public class VariableTextInput extends LinearLayout {
   private @Nullable String mReturnKeyType;
   private boolean mDisableFullscreen;
   private static final InputFilter[] EMPTY_FILTERS = new InputFilter[0];
-  private int mEditMaxLength;
+  private Editable mAllEditable;
   public VariableTextInput(Context context) {
     super(context);
     this.mContext = context;
@@ -111,21 +111,21 @@ public class VariableTextInput extends LinearLayout {
       @Override
       public void beforeTextChanged(CharSequence s, int start, int count, int after) {
         mPreviousText = s.toString();
-        mSpanLength = -1;
-        if (start == 0 || editText.getText() == null)
-          return;
-        if (count > after) {
-          TextSpan[] spans = editText.getText().getSpans(start + count, start + count, TextSpan.class);
-          if (spans == null || spans.length == 0)
-            return;
-          for (TextSpan span : spans) {
-            int endSpanIndex = editText.getText().getSpanEnd(span);
-            if (endSpanIndex != start + count)
-              continue;
-            mSpanLength = span.getRichTextBean().content.length() - 1;
-            editText.getText().removeSpan(span);
-          }
-        }
+//        mSpanLength = -1;
+//        if (start == 0 || editText.getText() == null)
+//          return;
+//        if (count > after) {
+//          TextSpan[] spans = editText.getText().getSpans(start + count, start + count, TextSpan.class);
+//          if (spans == null || spans.length == 0)
+//            return;
+//          for (TextSpan span : spans) {
+//            int endSpanIndex = editText.getText().getSpanEnd(span);
+//            if (endSpanIndex != start + count)
+//              continue;
+//            mSpanLength = span.getRichTextBean().content.length() - 1;
+//            editText.getText().removeSpan(span);
+//          }
+//        }
       }
 
       @Override
@@ -134,6 +134,7 @@ public class VariableTextInput extends LinearLayout {
         // attributes) can
         // also trigger onTextChanged, call the event in JS only when the text actually
         // changed
+        Log.e("onTextChanged", s.toString());
         if (count == 0 && before == 0) {
           return;
         }
@@ -148,9 +149,9 @@ public class VariableTextInput extends LinearLayout {
         }
         final Context context = getContext();
         if (context instanceof ReactContext) {
-          ((ReactContext) context).getJSModule(RCTEventEmitter.class).receiveEvent(getId(), "onAndroidTextInput", onTextInputEvent);
+          ((ReactContext) context).getJSModule(RCTEventEmitter.class).receiveEvent(getId(), "onAndroidChange", onTextInputEvent);
         }
-        // Don't send same text changes
+//        // Don't send same text changes
         if (count == before && newText.equals(oldText)) {
           return;
         }
@@ -158,20 +159,40 @@ public class VariableTextInput extends LinearLayout {
           ignoreNextLocalTextChange = false;
           return;
         }
-        if (before == 1 && count == 0 && editText.getText() != null && mSpanLength > -1 && start - mSpanLength >= 0) {
-          int length = mSpanLength;
-          mSpanLength = -1;
-          editText.getText().replace(start - length, start, "");
-        }
-        WritableMap event = Arguments.createMap();
-        event.putString("text", s.toString());
-        if (context instanceof ReactContext) {
-          ((ReactContext) context).getJSModule(RCTEventEmitter.class).receiveEvent(getId(), "onAndroidChange", event);
-        }
+//        if (before == 1 && count == 0 && editText.getText() != null && mSpanLength > -1 && start - mSpanLength >= 0) {
+//          int length = mSpanLength;
+//          mSpanLength = -1;
+//          editText.getText().replace(start - length, start, "");
+//        }
+//        Log.e("onTextChanged",  mAllEditable.toString());
+//        WritableMap event = Arguments.createMap();
+//        event.putString("text", s.toString());
+//        if (context instanceof ReactContext) {
+//          ((ReactContext) context).getJSModule(RCTEventEmitter.class).receiveEvent(getId(), "onAndroidChange", event);
+//        }
       }
 
       @Override
       public void afterTextChanged(Editable s) {
+        //遍历editText, 做内容替换
+        Log.e("afterTextChanged", s.toString());
+        if (editText.getText() != null) {
+          mAllEditable = Editable.Factory.getInstance().newEditable(editText.getText());
+          TextSpan[] spans = editText.getText().getSpans(0, mAllEditable.length(), TextSpan.class);
+          if (spans == null || spans.length == 0)
+            return;
+          for (TextSpan span : spans) {
+            int startSpanIndex = editText.getText().getSpanStart(span);
+            int endSpanIndex = editText.getText().getSpanEnd(span);
+            mAllEditable.replace(startSpanIndex, endSpanIndex, span.getRichTextBean().content);
+          }
+        }
+        WritableMap event1 = Arguments.createMap();
+        event1.putString("text", s.toString());
+        if (context instanceof ReactContext) {
+          ((ReactContext) context).getJSModule(RCTEventEmitter.class).receiveEvent(getId(), "onAndroidChange", event1);
+        }
+        Log.e("onTextChanged",  s.toString() + "标记之后的文本：" + mAllEditable.toString());
         // 文本变化之后的处理
         int newHeight = editText.getLineCount() * editText.getLineHeight();
         if (newHeight != oldHeight) {
@@ -614,7 +635,6 @@ public class VariableTextInput extends LinearLayout {
         }
       }
     } else {
-      mEditMaxLength = maxLength;
       if (currentFilters.length > 0) {
         newFilters = currentFilters;
         boolean replaced = false;
@@ -740,7 +760,7 @@ public class VariableTextInput extends LinearLayout {
         mSpannableString.setSpan(imageSpan, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         editText.setText(mSpannableString);
         editText.setSelection(endIndex);
-        editText.getText().replace(startIndex, endIndex, richTextBean.content);
+//        editText.getText().replace(startIndex, endIndex, richTextBean.content);
       }
     }
   }
@@ -756,12 +776,6 @@ public class VariableTextInput extends LinearLayout {
 
   private void insertMentions(RichTextBean richTextBean) {
     if (editText.getText() != null) {
-      int mentionLength = richTextBean.tag.length() + richTextBean.name.length();
-      if (mEditMaxLength > 0 && mEditMaxLength - editText.length() < mentionLength) return;
-
-      mEditMaxLength = mEditMaxLength + richTextBean.content.length() - richTextBean.tag.length() - richTextBean.name.length();
-      setMaxLength(mEditMaxLength);
-
       int startIndex = editText.getSelectionStart();
       int endIndex = startIndex + richTextBean.tag.length() + richTextBean.name.length();
       editText.getText().insert(startIndex, richTextBean.tag + richTextBean.name);
@@ -772,7 +786,7 @@ public class VariableTextInput extends LinearLayout {
       mSpannableString.setSpan(textSpan, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
       editText.setText(mSpannableString);
       editText.setSelection(endIndex);
-      editText.getText().replace(startIndex, endIndex, richTextBean.content);
+//      editText.getText().replace(startIndex, endIndex, richTextBean.content);
     }
   }
 }
