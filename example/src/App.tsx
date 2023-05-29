@@ -16,7 +16,7 @@ import {
 } from 'react-native-variable-text-input';
 import { EmojiList } from './EmojiList';
 import { IUserDataType, UserList } from './UserList';
-import type { IInputEmojiDataType } from './assets';
+import { IInputEmojiDataType, INPUT_EMOJIDATA } from './assets';
 export const App = () => {
   const inPutRef = React.createRef<IATTextViewBase>();
   const [keyBoardHeight, setKeyBoardHeight] = useState<number>(0);
@@ -70,7 +70,6 @@ export const App = () => {
   const onAddMention = () => {
     const arr = getAttributedTextArr(textValue);
     inPutRef.current?.changeAttributedText([...arr, { type: 0, text: '@' }]);
-    console.log('ddd');
   };
   const onUserSelect = (data: IUserDataType) => {
     inPutRef.current?.insertMentionAndDelateKeyword({
@@ -102,8 +101,9 @@ export const App = () => {
             placeholderTextColor={'#fff'}
             underlineColorAndroid={'rgba(0,0,0,0)'}
             blurOnSubmit={true}
-            maxTextLength={20}
+            maxTextLength={1000}
             onSubmitEditing={sub}
+            emojiData={INPUT_EMOJIDATA()}
             mentions={[
               { tag: '@', color: 'red' },
               { tag: '#', color: 'blue' },

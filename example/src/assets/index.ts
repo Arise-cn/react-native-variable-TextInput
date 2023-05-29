@@ -3,6 +3,7 @@ import {
   ImageResolvedAssetSource,
   ImageSourcePropType,
 } from 'react-native';
+import type { IEmojiData } from 'react-native-variable-text-input';
 
 interface IEmojiDataType {
   img: ImageSourcePropType;
@@ -497,15 +498,14 @@ const EMOJIDATA: IEmojiDataType[] = [
   },
 ];
 const INPUT_EMOJIDATA = () => {
-  const input_emojiData = EMOJIDATA.filter((item) => {
+  const input_emojiData: IEmojiData[] = [];
+  EMOJIDATA.forEach((item) => {
     const assetSource = Image.resolveAssetSource(item.img);
-    const inputEmojiDataItem: IInputEmojiDataType = {
+    const inputEmojiDataItem: IEmojiData = {
       img: assetSource,
       emojiTag: item.emojiTag,
-      type: 1,
-      emojiUri: assetSource.uri,
     };
-    return inputEmojiDataItem;
+    input_emojiData.push(inputEmojiDataItem);
   });
   return input_emojiData;
 };
