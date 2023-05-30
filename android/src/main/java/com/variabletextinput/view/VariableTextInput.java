@@ -102,21 +102,25 @@ public class VariableTextInput extends LinearLayout {
       @Override
       public void beforeTextChanged(CharSequence s, int start, int count, int after) {
         mPreviousText = s.toString();
-//        mSpanLength = -1;
-//        if (start == 0 || editText.getText() == null)
-//          return;
-//        if (count > after) {
-//          TextSpan[] spans = editText.getText().getSpans(start + count, start + count, TextSpan.class);
-//          if (spans == null || spans.length == 0)
-//            return;
-//          for (TextSpan span : spans) {
-//            int endSpanIndex = editText.getText().getSpanEnd(span);
-//            if (endSpanIndex != start + count)
-//              continue;
-//            mSpanLength = span.getRichTextBean().content.length() - 1;
-//            editText.getText().removeSpan(span);
-//          }
-//        }
+        mSpanLength = -1;
+        if (start == 0 || editText.getText() == null)
+          return;
+        if (count > after) {
+          TextSpan[] spans = editText.getText().getSpans(start + count, start + count, TextSpan.class);
+          if (spans == null || spans.length == 0)
+            return;
+          for (TextSpan span : spans) {
+            int endSpanIndex = editText.getText().getSpanEnd(span);
+            if (endSpanIndex != start + count)
+              continue;
+            if (span.getRichTextBean().type == 2) {
+              mSpanLength = span.getRichTextBean().tag.length() + span.getRichTextBean().name.length() - 1;
+            } else {
+              mSpanLength = span.getRichTextBean().content.length() - 1;
+            }
+            editText.getText().removeSpan(span);
+          }
+        }
       }
 
       @Override
@@ -149,12 +153,11 @@ public class VariableTextInput extends LinearLayout {
 //          ignoreNextLocalTextChange = false;
 //          return;
 //        }
-//        if (before == 1 && count == 0 && editText.getText() != null && mSpanLength > -1 && start - mSpanLength >= 0) {
-//          int length = mSpanLength;
-//          mSpanLength = -1;
-//          editText.getText().replace(start - length, start, "");
-//        }
-//        Log.e("onTextChanged",  mAllEditable.toString());
+        if (before == 1 && count == 0 && editText.getText() != null && mSpanLength > -1 && start - mSpanLength >= 0) {
+          int length = mSpanLength;
+          mSpanLength = -1;
+          editText.getText().replace(start - length, start, "");
+        }
 //        WritableMap event = Arguments.createMap();
 //        event.putString("text", s.toString());
 //        if (context instanceof ReactContext) {
@@ -667,6 +670,9 @@ public class VariableTextInput extends LinearLayout {
   public void insertEmoji(RichTextBean richTextBean)  {
     if (richTextBean.emojiUri.startsWith("http")){
       getNetWorkBitMap(richTextBean);
+      //debug环境下，开启子线程下载图片，所以插入话题或者@先执行，可开放下面代码做debug调试
+//      Bitmap bitmap =BitmapFactory.decodeResource(getResources(),R.drawable.kuxiao);
+//      bitmapToInput(bitmap,richTextBean);
     } else {
       int resourceId =  mContext.getResources().getIdentifier(richTextBean.emojiUri,"drawable",mContext.getPackageName());
       Bitmap bitmap =BitmapFactory.decodeResource(getResources(),resourceId);
