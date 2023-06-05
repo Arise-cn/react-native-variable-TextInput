@@ -121,6 +121,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     minHeight: 40,
     flex: 1,
+    maxHeight: 80,
   },
   hor: {
     flexDirection: 'row',
