@@ -84,6 +84,12 @@ export const App = () => {
             mentions={['@', '#']}
             onMention={onMention}
             keyboardAppearance={'dark'}
+            onBlur={() => {
+              console.log('==onBlur==');
+            }}
+            onFocus={() => {
+              console.log('==onFocus==');
+            }}
           />
           <TouchableOpacity
             activeOpacity={0.85}

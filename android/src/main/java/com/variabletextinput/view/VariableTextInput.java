@@ -24,6 +24,7 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.LinearLayout;
@@ -100,6 +101,31 @@ public class VariableTextInput extends LinearLayout {
     editText.setBackground(reactViewBackgroundDrawable);
     scrollView.addView(editText);
     this.addView(scrollView);
+    //添加键盘onFocusChangeListener监听器
+    editText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+      @Override
+      public void onFocusChange(View v, boolean hasFocus) {
+        if (hasFocus) {
+          // 当 EditText 获取焦点时执行的操作
+          // 例如：显示键盘
+          WritableMap event = Arguments.createMap();
+          event.putString("text", editText.getText().toString());
+          final Context context = getContext();
+          if (context instanceof ReactContext) {
+            ((ReactContext) context).getJSModule(RCTEventEmitter.class).receiveEvent(getId(), "onAndroidFocus", event);
+          }
+        } else {
+          // 当 EditText 失去焦点时执行的操作
+          // 例如：隐藏键盘
+          WritableMap event = Arguments.createMap();
+          event.putString("text", editText.getText().toString());
+          final Context context = getContext();
+          if (context instanceof ReactContext) {
+            ((ReactContext) context).getJSModule(RCTEventEmitter.class).receiveEvent(getId(), "onAndroidBlur", event);
+          }
+        }
+      }
+    });
     // 添加 TextWatcher 监听器
     editText.addTextChangedListener(new TextWatcher() {
       private int oldHeight = editText.getHeight(); // 保存旧的高度

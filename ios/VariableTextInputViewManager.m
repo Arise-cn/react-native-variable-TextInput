@@ -31,7 +31,8 @@ RCT_CUSTOM_VIEW_PROPERTY(placeholderTextColor, UIColor, VariableTextInput)
 }
 RCT_EXPORT_VIEW_PROPERTY(onTextInput, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onTag, RCTDirectEventBlock)
-
+RCT_EXPORT_VIEW_PROPERTY(onBlur, RCTBubblingEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onFocus, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onChange, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onContentSizeChange, RCTBubblingEventBlock)
 RCT_CUSTOM_VIEW_PROPERTY(textAlign, NSTextAlignment, VariableTextInput)

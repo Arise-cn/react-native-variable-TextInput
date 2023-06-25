@@ -318,7 +318,7 @@ public class VariableTextInputViewManager extends SimpleViewManager<VariableText
 
   /**
    * 接受交互通知
-   * 
+   *
    * @return
    */
   @Nullable
@@ -335,7 +335,7 @@ public class VariableTextInputViewManager extends SimpleViewManager<VariableText
 
   /**
    * 根据命令ID，处理对应任务
-   * 
+   *
    * @param root
    * @param commandId
    * @param args
@@ -378,6 +378,10 @@ public class VariableTextInputViewManager extends SimpleViewManager<VariableText
         "onAndroidChange",
         MapBuilder.of("registrationName", "onAndroidChange")).put("onAndroidContentSizeChange",
             MapBuilder.of("registrationName", "onAndroidContentSizeChange"))
-        .put("onAndroidTextInput", MapBuilder.of("registrationName", "onAndroidTextInput")).build();
+        .put("onAndroidTextInput", MapBuilder.of("registrationName", "onAndroidTextInput")).put(
+        "onAndroidBlur",
+        MapBuilder.of("registrationName", "onAndroidBlur")).put(
+      "onAndroidFocus",
+      MapBuilder.of("registrationName", "onAndroidFocus")).build();
   }
 }

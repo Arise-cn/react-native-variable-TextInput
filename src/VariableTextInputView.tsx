@@ -56,6 +56,10 @@ interface INativeProps {
   onSubmitEditing?: (text: string) => void;
   onAndroidSubmitEditing?: (text: string) => void;
   submitBehavior?: 'submit';
+  onBlur?: () => void;
+  onFocus?: () => void;
+  onAndroidFocus?: () => void;
+  onAndroidBlur?: () => void;
 }
 interface IProps {
   style?: StyleProp<TextStyle> | undefined;
@@ -78,6 +82,8 @@ interface IProps {
   emojiData?: IEmojiData[];
   mentions?: string[]; //'@','#'
   onMention?: (data: IonMentionData) => void;
+  onBlur?: () => void;
+  onFocus?: () => void;
 }
 export type IATTextViewRef = React.ForwardedRef<IATTextViewBase>;
 
@@ -245,6 +251,8 @@ const VariableTextInputView = forwardRef(
         {...props}
         onAndroidSubmitEditing={onAndroidSubmitEditing}
         onAndroidTextInput={onAndroidTextInput}
+        onAndroidBlur={props.onBlur}
+        onAndroidFocus={props.onFocus}
         style={style}
       />
     );

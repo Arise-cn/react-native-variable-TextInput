@@ -43,9 +43,18 @@ static NSString * const kTextAlignmentKey = @"textAlignment";
     if (self) {
       self.delegate = self;
         [self addObserver:self forKeyPath:@"contentSize" options:NSKeyValueObservingOptionNew|NSKeyValueObservingOptionOld context:NULL];
-
+      
       [self preparePlaceholder];
     }
+    
+       //注册通知,监听键盘弹出事件
+    
+       [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardDidShow:) name:UIKeyboardDidShowNotification object:nil];
+            
+       //注册通知,监听键盘消失事件
+            
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardDidHidden:) name:UIKeyboardDidHideNotification object:nil];
+
     return self;
 }
 #else
@@ -58,6 +67,15 @@ static NSString * const kTextAlignmentKey = @"textAlignment";
 
       [self preparePlaceholder];
     }
+    
+       //注册通知,监听键盘弹出事件
+    
+       [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardDidShow:) name:UIKeyboardDidShowNotification object:nil];
+            
+       //注册通知,监听键盘消失事件
+            
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardDidHidden:) name:UIKeyboardDidHideNotification object:nil];
+      
     return self;
 }
 #endif
@@ -136,7 +154,14 @@ static NSString * const kTextAlignmentKey = @"textAlignment";
                   options:NSKeyValueObservingOptionNew context:nil];
     }
 }
-
+-(void)keyboardDidShow: (NSNotification *)notif {
+    //todo
+    _onFocus(@{@"text": [self.textStorage getPlainString]});
+}
+-(void)keyboardDidHidden: (NSNotification *)notif {
+    //todo
+    _onBlur(@{@"text": [self.textStorage getPlainString]});
+}
 - (void)setPlaceholder:(NSString *)placeholderText
 {
     _placeholder = [placeholderText copy];
