@@ -20,6 +20,8 @@ interface IProps {
     emojiData?: IEmojiData[];
     mentions?: string[];
     onMention?: (data: IonMentionData) => void;
+    onBlur?: () => void;
+    onFocus?: () => void;
 }
 export type IATTextViewRef = React.ForwardedRef<IATTextViewBase>;
 declare const VariableTextInputView: React.ForwardRefExoticComponent<IProps & React.RefAttributes<IATTextViewBase>>;

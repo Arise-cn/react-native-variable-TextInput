@@ -156,11 +156,14 @@ static NSString * const kTextAlignmentKey = @"textAlignment";
 }
 -(void)keyboardDidShow: (NSNotification *)notif {
     //todo
-    _onFocus(@{@"text": [self.textStorage getPlainString]});
+    if([self isFirstResponder]){
+        _onFocus(@{@"text": [self.textStorage getPlainString]});
+    }
 }
 -(void)keyboardDidHidden: (NSNotification *)notif {
-    //todo
-    _onBlur(@{@"text": [self.textStorage getPlainString]});
+    if([self isFirstResponder]){
+        _onBlur(@{@"text": [self.textStorage getPlainString]});
+    }
 }
 - (void)setPlaceholder:(NSString *)placeholderText
 {
