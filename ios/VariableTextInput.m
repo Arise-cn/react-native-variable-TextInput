@@ -156,12 +156,12 @@ static NSString * const kTextAlignmentKey = @"textAlignment";
 }
 -(void)keyboardDidShow: (NSNotification *)notif {
     //todo
-    if([self isFirstResponder]){
+    if([self isFirstResponder] && _onFocus){
         _onFocus(@{@"text": [self.textStorage getPlainString]});
     }
 }
 -(void)keyboardDidHidden: (NSNotification *)notif {
-    if([self isFirstResponder]){
+    if([self isFirstResponder] && _onBlur){
         _onBlur(@{@"text": [self.textStorage getPlainString]});
     }
 }
