@@ -245,6 +245,18 @@ public class VariableTextInput extends LinearLayout {
       new TextView.OnEditorActionListener() {
         @Override
         public boolean onEditorAction(TextView v, int actionId, KeyEvent keyEvent) {
+          Log.d("Input", "onEditorAction actionId:" + actionId);
+          if (actionId == EditorInfo.IME_ACTION_SEARCH
+            || actionId == EditorInfo.IME_ACTION_SEND
+            || actionId == EditorInfo.IME_ACTION_DONE) {
+            WritableMap event = Arguments.createMap();
+            event.putString("text", editText.getText().toString());
+            final Context context = getContext();
+            if (context instanceof ReactContext) {
+              ((ReactContext) context).getJSModule(RCTEventEmitter.class).receiveEvent(getId(), "onAndroidSubmitEditing", event);
+            }
+            return true;
+          }
           if ((actionId & EditorInfo.IME_MASK_ACTION) != 0 || actionId == EditorInfo.IME_NULL) {
             boolean isMultiline = true;
 
@@ -588,12 +600,15 @@ public class VariableTextInput extends LinearLayout {
           returnKeyFlag = EditorInfo.IME_ACTION_PREVIOUS;
           break;
         case "search":
+          editText.setInputType(EditorInfo.TYPE_CLASS_TEXT);
           returnKeyFlag = EditorInfo.IME_ACTION_SEARCH;
           break;
         case "send":
+          editText.setInputType(EditorInfo.TYPE_CLASS_TEXT);
           returnKeyFlag = EditorInfo.IME_ACTION_SEND;
           break;
         case "done":
+          editText.setInputType(EditorInfo.TYPE_CLASS_TEXT);
           returnKeyFlag = EditorInfo.IME_ACTION_DONE;
           break;
       }

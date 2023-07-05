@@ -44,7 +44,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property(assign, nonatomic, getter=isSupport) BOOL bSupport;
 @property(nonatomic, copy) RCTBubblingEventBlock onChange;
 @property (nonatomic, copy, nullable) RCTDirectEventBlock onContentSizeChange;
-@property(nonatomic, copy) RCTBubblingEventBlock onSubmitEditing;
+@property(nonatomic, copy, nullable) RCTDirectEventBlock onSubmitEditing;
 @property(nonatomic,copy, nullable)RCTDirectEventBlock onTag;
 @property(nonatomic, copy, nullable) RCTDirectEventBlock onTextInput;
 @property(nonatomic, copy, nullable) RCTDirectEventBlock onBlur;

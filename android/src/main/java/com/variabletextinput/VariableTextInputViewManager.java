@@ -376,6 +376,7 @@ public class VariableTextInputViewManager extends SimpleViewManager<VariableText
         "onAndroidBlur",
         MapBuilder.of("registrationName", "onAndroidBlur")).put(
       "onAndroidFocus",
-      MapBuilder.of("registrationName", "onAndroidFocus")).build();
+      MapBuilder.of("registrationName", "onAndroidFocus")).put("onAndroidSubmitEditing",
+        MapBuilder.of("registrationName", "onAndroidSubmitEditing")).build();
   }
 }

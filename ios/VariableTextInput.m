@@ -347,13 +347,20 @@ static NSString * const kTextAlignmentKey = @"textAlignment";
 }
 
 - (void)textViewDidChange:(UITextView *)textView {
-    
     if (_onChange) {
         _onChange(@{@"text":[textView.textStorage getPlainString]});
     }
 }
 
 - (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
+    // 处理键盘return事件
+    BOOL returnStatus = textView.returnKeyType == UIReturnKeyDone || textView.returnKeyType == UIReturnKeySend || textView.returnKeyType == UIReturnKeySearch;
+    if(returnStatus && [text isEqualToString:@"\n"]) {
+        if (self.onSubmitEditing) {
+            self.onSubmitEditing(@{@"text": [self.textStorage getPlainString]});
+        }
+        return NO;
+    }
   NSString *oldStr =  [self getStrContentInRange:NSMakeRange(0, [self.attributedText length])];
   NSString *newStr =  [NSString stringWithFormat:@"%@%@",oldStr,text];
     [self handleTags:text];

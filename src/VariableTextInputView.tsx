@@ -54,8 +54,8 @@ interface INativeProps {
     e: NativeSyntheticEvent<TextInputContentSizeChangeEventData>
   ) => void;
   keyboardType?: KeyboardTypeOptions | undefined;
-  onSubmitEditing?: (text: string) => void;
-  onAndroidSubmitEditing?: (text: string) => void;
+  onSubmitEditing?: (e: NativeSyntheticEvent<TextInputChangeEventData>) => void;
+  onAndroidSubmitEditing?: (e: IVTTextInputData) => void;
   submitBehavior?: 'submit';
   onBlur?: () => void;
   onFocus?: () => void;
@@ -239,7 +239,12 @@ const VariableTextInputView = forwardRef(
         insertMentionAndDelateKeyword: insertMentionAndDelateKeyword,
       };
     });
-    const onAndroidSubmitEditing = () => {};
+    const _onSubmitEditing = (e: NativeSyntheticEvent<TextInputChangeEventData>) => {
+      props.onSubmitEditing && props.onSubmitEditing(e.nativeEvent.text);
+    }
+    const onAndroidSubmitEditing = (e: IVTTextInputData) => {
+      props.onSubmitEditing && props.onSubmitEditing(e.nativeEvent.text);
+    };
     const onAndroidTextInput = (e: IVTTextInputData) => {
       props.onTextInput && props.onTextInput(e);
     };
@@ -252,6 +257,7 @@ const VariableTextInputView = forwardRef(
         onAndroidChange={_onChange}
         onAndroidContentSizeChange={onContentSizeChange}
         {...props}
+        onSubmitEditing={_onSubmitEditing}
         onAndroidSubmitEditing={onAndroidSubmitEditing}
         onAndroidTextInput={onAndroidTextInput}
         onAndroidBlur={props.onBlur}
