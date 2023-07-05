@@ -289,28 +289,22 @@ public class VariableTextInputViewManager extends SimpleViewManager<VariableText
   public void setKeyboardType(VariableTextInput view, String keyboardType) {
     switch (keyboardType) {
       case "default": {
-        view.setImeOptions(EditorInfo.IME_ACTION_NONE);
         view.setInputType(EditorInfo.TYPE_CLASS_TEXT);
       }
         break;
       case "numeric":
-        view.setImeOptions(EditorInfo.IME_ACTION_NONE);
         view.setInputType(EditorInfo.TYPE_CLASS_NUMBER);
         break;
       case "email-address":
-        view.setImeOptions(EditorInfo.IME_ACTION_NONE);
         view.setInputType(EditorInfo.TYPE_CLASS_TEXT | EditorInfo.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
         break;
       case "phone-pad":
-        view.setImeOptions(EditorInfo.IME_ACTION_NONE);
         view.setInputType(EditorInfo.TYPE_CLASS_PHONE);
         break;
       case "url":
-        view.setImeOptions(EditorInfo.IME_ACTION_NONE);
         view.setInputType(EditorInfo.TYPE_CLASS_TEXT | EditorInfo.TYPE_TEXT_VARIATION_URI);
         break;
       default:
-        view.setImeOptions(EditorInfo.IME_ACTION_NONE);
         view.setInputType(EditorInfo.TYPE_CLASS_TEXT);
         break;
     }
@@ -382,6 +376,7 @@ public class VariableTextInputViewManager extends SimpleViewManager<VariableText
         "onAndroidBlur",
         MapBuilder.of("registrationName", "onAndroidBlur")).put(
       "onAndroidFocus",
-      MapBuilder.of("registrationName", "onAndroidFocus")).build();
+      MapBuilder.of("registrationName", "onAndroidFocus")).put("onAndroidSubmitEditing",
+        MapBuilder.of("registrationName", "onAndroidSubmitEditing")).build();
   }
 }
