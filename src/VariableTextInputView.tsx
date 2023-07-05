@@ -239,9 +239,11 @@ const VariableTextInputView = forwardRef(
         insertMentionAndDelateKeyword: insertMentionAndDelateKeyword,
       };
     });
-    const _onSubmitEditing = (e: NativeSyntheticEvent<TextInputChangeEventData>) => {
+    const _onSubmitEditing = (
+      e: NativeSyntheticEvent<TextInputChangeEventData>
+    ) => {
       props.onSubmitEditing && props.onSubmitEditing(e.nativeEvent.text);
-    }
+    };
     const onAndroidSubmitEditing = (e: IVTTextInputData) => {
       props.onSubmitEditing && props.onSubmitEditing(e.nativeEvent.text);
     };
