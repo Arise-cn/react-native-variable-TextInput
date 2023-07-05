@@ -11,6 +11,7 @@ import {
   TextInputContentSizeChangeEventData,
   Platform,
   KeyboardTypeOptions,
+  ReturnKeyTypeOptions,
 } from 'react-native';
 import React, {
   forwardRef,
@@ -60,6 +61,7 @@ interface INativeProps {
   onFocus?: () => void;
   onAndroidFocus?: () => void;
   onAndroidBlur?: () => void;
+  returnKeyType?: ReturnKeyTypeOptions | undefined;
 }
 interface IProps {
   style?: StyleProp<TextStyle> | undefined;
@@ -84,6 +86,7 @@ interface IProps {
   onMention?: (data: IonMentionData) => void;
   onBlur?: () => void;
   onFocus?: () => void;
+  returnKeyType?: ReturnKeyTypeOptions | undefined;
 }
 export type IATTextViewRef = React.ForwardedRef<IATTextViewBase>;
 
