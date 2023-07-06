@@ -1,4 +1,4 @@
-import { StyleProp, TextStyle, ColorValue, NativeSyntheticEvent, TextInputChangeEventData, TextInputContentSizeChangeEventData, KeyboardTypeOptions } from 'react-native';
+import { StyleProp, TextStyle, ColorValue, NativeSyntheticEvent, TextInputChangeEventData, TextInputContentSizeChangeEventData, KeyboardTypeOptions, ReturnKeyTypeOptions } from 'react-native';
 import React from 'react';
 import type { IATTextViewBase, IEmojiData, IVTTextInputData, IonMentionData } from './exTypes';
 interface IProps {
@@ -22,6 +22,7 @@ interface IProps {
     onMention?: (data: IonMentionData) => void;
     onBlur?: () => void;
     onFocus?: () => void;
+    returnKeyType?: ReturnKeyTypeOptions | undefined;
 }
 export type IATTextViewRef = React.ForwardedRef<IATTextViewBase>;
 declare const VariableTextInputView: React.ForwardRefExoticComponent<IProps & React.RefAttributes<IATTextViewBase>>;
