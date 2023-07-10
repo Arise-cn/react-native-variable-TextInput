@@ -386,6 +386,9 @@ public class VariableTextInput extends LinearLayout {
     boolean isEmpty = text == null || text.trim().length() == 0;
     ignoreNextLocalTextChange = !isEmpty;
     editText.setText(text);
+    if (!isEmpty) {
+      editText.setSelection(text.length());
+    }
   }
 
   public void setAutoFocus(boolean autoFocus) {
@@ -588,28 +591,34 @@ public class VariableTextInput extends LinearLayout {
     if (mReturnKeyType != null) {
       switch (mReturnKeyType) {
         case "go":
+          editText.setSingleLine();
           returnKeyFlag = EditorInfo.IME_ACTION_GO;
           break;
         case "next":
+          editText.setSingleLine();
           returnKeyFlag = EditorInfo.IME_ACTION_NEXT;
           break;
         case "none":
+          editText.setSingleLine(false);
           returnKeyFlag = EditorInfo.IME_ACTION_NONE;
           break;
         case "previous":
+          editText.setSingleLine();
           returnKeyFlag = EditorInfo.IME_ACTION_PREVIOUS;
           break;
         case "search":
-          editText.setInputType(EditorInfo.TYPE_CLASS_TEXT);
+          editText.setSingleLine();
           returnKeyFlag = EditorInfo.IME_ACTION_SEARCH;
           break;
         case "send":
-          editText.setInputType(EditorInfo.TYPE_CLASS_TEXT);
+          editText.setSingleLine();
           returnKeyFlag = EditorInfo.IME_ACTION_SEND;
           break;
         case "done":
-          editText.setInputType(EditorInfo.TYPE_CLASS_TEXT);
-          returnKeyFlag = EditorInfo.IME_ACTION_DONE;
+          editText.setSingleLine();
+          break;
+        default:
+          editText.setSingleLine(false);
           break;
       }
     }
