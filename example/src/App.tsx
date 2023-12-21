@@ -1,115 +1,117 @@
-import * as React from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  ImageResolvedAssetSource,
-  Image,
   View,
+  Keyboard,
+  KeyboardEvent,
+  TouchableOpacity,
+  Text,
+  Image,
 } from 'react-native';
-import VariableTextInputView, {
+import {
   IATTextViewBase,
-  IInserTextAttachmentItem,
-  ITextType,
+  IonMentionData,
+  VariableTextInputView,
 } from 'react-native-variable-text-input';
+import { EmojiList } from './EmojiList';
 export const App = () => {
   const inPutRef = React.createRef<IATTextViewBase>();
-  const onChangeText = (text: string) => {
-    const triggerRegEx = /({([^{^}]*)}\[([^[]*)]\(([^(^)]*)\))/gi;
-    const singleGroupTriggerRegEx = /({[^{^}]*}\[[^[]*]\([^(^)]*\))/gi;
-    const matchStr = text.match(triggerRegEx);
-    if (matchStr !== null) {
-      const subStrArr = text.split(triggerRegEx);
-      subStrArr.forEach((item) => {
-        const arr = item.match(singleGroupTriggerRegEx);
-        console.log('====>', arr);
-      });
-    }
-  };
-  const insertEmoji = () => {
-    const data: ImageResolvedAssetSource = Image.resolveAssetSource(
-      require('./[苦笑].png')
+  const [keyBoardHeight, setKeyBoardHeight] = useState<number>(0);
+  // const [showUser, setShowUser] = useState<boolean>(false);
+  // const [showTags, setShowTags] = useState<boolean>(false);
+  const [showEmoji, setShowEmoji] = useState<boolean>(false);
+  // const [ setTextValue] = useState<string>('');
+  React.useEffect(() => {
+    const showListener = Keyboard.addListener(
+      'keyboardDidShow',
+      keyBoardDidShow
     );
-    inPutRef.current?.insertEmoji({
-      img: data,
-      emojiTag: '[苦笑]',
-      type: ITextType.emoji,
-    });
+    const hideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      keyBoardDidHide
+    );
+    return () => {
+      showListener.remove();
+      hideListener.remove();
+    };
+  }, []);
+  const keyBoardDidShow = (event: KeyboardEvent) => {
+    setKeyBoardHeight(event.endCoordinates.height);
   };
-  const blur = () => {
+  const keyBoardDidHide = () => {
+    // setKeyBoardHeight(0);
+  };
+  const onChangeText = (text: string) => {
+    // setTextValue(text);
+    console.log('text===>', text);
+  };
+  const sub = (e: any) => {
+    console.log('rrrrr===>', e);
+  };
+  const onMention = (data: IonMentionData) => {
+    //todo
+    console.log('onMentions===>', data);
+  };
+  const onTouchEmView = () => {
+    setKeyBoardHeight(0);
     inPutRef.current?.blur();
   };
-  const insertMonthons = () => {
-    inPutRef.current?.insertMentions({
-      tag: '#',
-      name: '测试tag',
-      color: 'red',
-      id: '123344',
-      type: ITextType.tagText,
-    });
-  };
-  const changeAttributedText = () => {
-    const imageData: ImageResolvedAssetSource = Image.resolveAssetSource(
-      require('./[苦笑].png')
-    );
-    const emojiData = { img: imageData, emojiTag: '[苦笑]' };
-    const tagData: IInserTextAttachmentItem = {
-      tag: '#',
-      name: '测试tag',
-      color: 'red',
-      id: '123344',
-      type: ITextType.tagText,
-    };
-    inPutRef.current?.changeAttributedText([
-      { type: 0, text: '普通字符' },
-      { type: 1, ...emojiData },
-      tagData,
-    ]);
-  };
-  const focus = () => {
-    inPutRef.current?.focus();
+  const onTouchContro = () => {
+    !showEmoji && inPutRef.current?.blur();
+    showEmoji && inPutRef.current?.focus();
+    setShowEmoji(!showEmoji);
   };
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <VariableTextInputView
-        style={styles.box}
-        ref={inPutRef}
-        onChangeText={onChangeText}
-        placeholder={'测试测试测试'}
-        underlineColorAndroid={'rgba(0,0,0,0)'}
-      />
-      <View style={{ flexDirection: 'row', marginTop: 40 }}>
-        <TouchableOpacity onPress={blur} style={{ marginLeft: 20 }}>
-          <Text style={{ backgroundColor: 'yellow', color: 'red' }}>
-            {'blur'}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={focus} style={{ marginLeft: 10 }}>
-          <Text style={{ backgroundColor: 'yellow', color: 'red' }}>
-            {'focus'}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={insertMonthons} style={{ marginLeft: 10 }}>
-          <Text style={{ backgroundColor: 'yellow', color: 'red' }}>
-            {'insertMonthons'}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={insertEmoji} style={{ marginLeft: 10 }}>
-          <Text style={{ backgroundColor: 'yellow', color: 'red' }}>
-            {'insertEmoji'}
-          </Text>
-        </TouchableOpacity>
+    <View style={styles.container}>
+      <View style={{ flex: 1, width: '100%' }}>
         <TouchableOpacity
-          onPress={changeAttributedText}
-          style={{ marginLeft: 10 }}
-        >
-          <Text style={{ backgroundColor: 'yellow', color: 'red' }}>
-            {'changeAttributedText'}
-          </Text>
-        </TouchableOpacity>
+          onPress={onTouchEmView}
+          activeOpacity={1}
+          style={{ flex: 1 }}
+        />
       </View>
-    </ScrollView>
+      <View>
+        <View style={styles.hor}>
+          <VariableTextInputView
+            style={styles.box}
+            ref={inPutRef}
+            onChangeText={onChangeText}
+            placeholder={'测试测试测试'}
+            placeholderTextColor={'#fff'}
+            underlineColorAndroid={'rgba(0,0,0,0)'}
+            blurOnSubmit={true}
+            onSubmitEditing={sub}
+            mentions={['@', '#']}
+            onMention={onMention}
+            keyboardAppearance={'dark'}
+            onBlur={() => {
+              console.log('==onBlur==');
+            }}
+            onFocus={() => {
+              console.log('==onFocus==');
+            }}
+          />
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={{ marginLeft: 10 }}
+            onPress={onTouchContro}
+          >
+            <Image
+              source={
+                !showEmoji
+                  ? require('./assets/icon/emoji_icon.png')
+                  : require('./assets/icon/keyboard_icon.png')
+              }
+              style={styles.icon}
+            />
+          </TouchableOpacity>
+          <View style={styles.sendButton}>
+            <Text style={styles.sendText}>SEND</Text>
+          </View>
+        </View>
+        <EmojiList numColumns={6} keyBoardHeight={keyBoardHeight} />
+      </View>
+    </View>
   );
 };
 export default App;
@@ -117,13 +119,38 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
   },
   box: {
-    backgroundColor: 'blue',
+    backgroundColor: '#000',
     color: '#fff',
     fontSize: 14,
-    width: '100%',
-    minHeight: 100,
+    minHeight: 40,
+    flex: 1,
+    maxHeight: 80,
+  },
+  hor: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderColor: '#000',
+    borderWidth: 1,
+  },
+  sendButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#000',
+    borderRadius: 15,
+    width: 60,
+    height: 30,
+    marginHorizontal: 10,
+  },
+  sendText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  icon: {
+    width: 30,
+    height: 30,
   },
 });

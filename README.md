@@ -1,24 +1,31 @@
 # react-native-variable-text-input
 
-my variable textInput
+custom emoji textInput mentions which works both ios and Android
+
+## Demonstration
+
+<img src="./gifs/demo.gif?raw=true" width="20%">
+
+## Key features
+
+-Support for customized emoji
+-Support for inserting tags (@ && #)
 
 ## Installation
 
+Install `react-native-variable-text-input` package from npm:
+
 ```sh
 yarn add react-native-variable-text-input
-```
-```ios
+# or
+# npm install react-native-variable-text-input --save
 cd ios
 pod install
-## Usage
-
-```js
-import { VariableTextInputView } from "react-native-variable-text-input";
-
-// ...
-
-<VariableTextInputView  style = {{flex:1,height:20,width:'100%'}}/>
 ```
+
+## Documentation
+
+//todo
 
 ## Contributing
 

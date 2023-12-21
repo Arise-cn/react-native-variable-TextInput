@@ -14,15 +14,28 @@
 RCT_EXPORT_MODULE()
 RCT_EXPORT_VIEW_PROPERTY(placeholder, NSString)
 RCT_EXPORT_VIEW_PROPERTY(text, NSString)
+RCT_EXPORT_VIEW_PROPERTY(paddingTop, CGFloat)
+RCT_EXPORT_VIEW_PROPERTY(paddingRight, CGFloat)
+RCT_EXPORT_VIEW_PROPERTY(paddingBottom, CGFloat)
+RCT_EXPORT_VIEW_PROPERTY(paddingLeft, CGFloat)
+RCT_EXPORT_VIEW_PROPERTY(padding, CGFloat)
+RCT_EXPORT_VIEW_PROPERTY(paddingHorizontal, CGFloat)
+RCT_EXPORT_VIEW_PROPERTY(paddingVertical, CGFloat)
+RCT_EXPORT_VIEW_PROPERTY(keyboardType, UIKeyboardType)
+RCT_EXPORT_VIEW_PROPERTY(keyboardAppearance, UIKeyboardAppearance)
+RCT_EXPORT_VIEW_PROPERTY(returnKeyType, UIReturnKeyType)
+RCT_EXPORT_VIEW_PROPERTY(blurOnSubmit, BOOL)
 RCT_CUSTOM_VIEW_PROPERTY(placeholderTextColor, UIColor, VariableTextInput)
 {
     [view setValue: [RCTConvert UIColor:json] forKeyPath: @"placeholderTextColor"];
 }
 RCT_EXPORT_VIEW_PROPERTY(onTextInput, RCTDirectEventBlock)
-
+RCT_EXPORT_VIEW_PROPERTY(onTag, RCTDirectEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onBlur, RCTBubblingEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onFocus, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onChange, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onContentSizeChange, RCTBubblingEventBlock)
-
+RCT_EXPORT_VIEW_PROPERTY(onSubmitEditing, RCTBubblingEventBlock)
 RCT_CUSTOM_VIEW_PROPERTY(textAlign, NSTextAlignment, VariableTextInput)
 {
     [view setTextAlignment:[RCTConvert NSTextAlignment:json]];
@@ -81,11 +94,21 @@ RCT_EXPORT_METHOD(insertEmoji:( NSDictionary *)rnImageData)
     [self insertTextEmoji:rnImageData];
     });
 }
+RCT_EXPORT_METHOD(dismissTag)
+{
+  dispatch_async(dispatch_get_main_queue(), ^{
+      self.textInput.tagStr = @"";
+      self.textInput.keyWord = @"";
+    });
+}
 - (UIView *)view
 {
     _textInput = [[VariableTextInput alloc]init];
     _textInput.textContainerInset = UIEdgeInsetsZero;
     _textInput.textContainer.lineFragmentPadding = 0;
+    _textInput.tagStr = @"";
+    _textInput.keyWord = @"";
+    _textInput.blurOnSubmit = true;
     return  _textInput;
 }
 #pragma mark -drawImagewith text
@@ -209,8 +232,16 @@ RCT_EXPORT_METHOD(insertEmoji:( NSDictionary *)rnImageData)
   [dic setObject:color forKey:@"NSColor"];
   CGSize textSize = [showStr sizeWithAttributes:self.textInput.typingAttributes];
   UIImage *image =  [self drawImageWithColor:[UIColor clearColor] size:textSize text:[NSString stringWithFormat:@"%@",showStr] textAttributes:dic circular:NO];
+    if(_textInput.tagStr != nil && ![_textInput.tagStr isEqualToString:@""]){
+        _textInput.text = [_textInput.text stringByReplacingOccurrencesOfString:[NSString stringWithFormat:@"%@%@",_textInput.tagStr,_textInput.keyWord] withString:@""];
+        NSAttributedString *attString = _textInput.attributedText;
+        _textInput.tagStr = @"";
+        _textInput.keyWord = @"";
+    }
   [self setTextAttachment:image tag:emojiTag size:textSize copyStr:copyStr];
+  
 }
+
 -(void)setAttributedText:(NSArray *)arr{
   NSMutableAttributedString *attStr = [[NSMutableAttributedString alloc]init];
   UIFont *textFont = [_textInput.defultTypingAttributes objectForKey:@"NSFont"];

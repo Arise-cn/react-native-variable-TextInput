@@ -42,8 +42,19 @@ static NSString * const kTextAlignmentKey = @"textAlignment";
     self = [super initWithFrame:frame textContainer:textContainer];
     if (self) {
       self.delegate = self;
+        [self addObserver:self forKeyPath:@"contentSize" options:NSKeyValueObservingOptionNew|NSKeyValueObservingOptionOld context:NULL];
+      
       [self preparePlaceholder];
     }
+    
+       //注册通知,监听键盘弹出事件
+    
+       [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardDidShow:) name:UIKeyboardDidShowNotification object:nil];
+            
+       //注册通知,监听键盘消失事件
+            
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardDidHidden:) name:UIKeyboardDidHideNotification object:nil];
+
     return self;
 }
 #else
@@ -52,12 +63,22 @@ static NSString * const kTextAlignmentKey = @"textAlignment";
     self = [super initWithFrame:frame];
     if (self) {
       self.delegate = self;
+        [self addObserver:self forKeyPath:@"contentSize" options:NSKeyValueObservingOptionNew|NSKeyValueObservingOptionOld context:NULL];
+
       [self preparePlaceholder];
     }
+    
+       //注册通知,监听键盘弹出事件
+    
+       [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardDidShow:) name:UIKeyboardDidShowNotification object:nil];
+            
+       //注册通知,监听键盘消失事件
+            
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardDidHidden:) name:UIKeyboardDidHideNotification object:nil];
+      
     return self;
 }
 #endif
-
 - (void)preparePlaceholder
 {
     NSAssert(!self.placeholderTextView, @"placeholder has been prepared already: %@", self.placeholderTextView);
@@ -133,7 +154,17 @@ static NSString * const kTextAlignmentKey = @"textAlignment";
                   options:NSKeyValueObservingOptionNew context:nil];
     }
 }
-
+-(void)keyboardDidShow: (NSNotification *)notif {
+    //todo
+    if([self isFirstResponder] && _onFocus){
+        _onFocus(@{@"text": [self.textStorage getPlainString]});
+    }
+}
+-(void)keyboardDidHidden: (NSNotification *)notif {
+    if([self isFirstResponder] && _onBlur){
+        _onBlur(@{@"text": [self.textStorage getPlainString]});
+    }
+}
 - (void)setPlaceholder:(NSString *)placeholderText
 {
     _placeholder = [placeholderText copy];
@@ -192,6 +223,9 @@ static NSString * const kTextAlignmentKey = @"textAlignment";
     else if ([keyPath isEqualToString:kTextAlignmentKey]) {
         NSNumber *alignment = [change objectForKey:NSKeyValueChangeNewKey];
         self.placeholderTextView.textAlignment = alignment.intValue;
+    }else if([keyPath isEqualToString:@"contentSize"]){
+        //v center
+//        [self updateContentInset];
     }
     else {
         [super observeValueForKeyPath:keyPath ofObject:object change:change context:context];
@@ -313,15 +347,38 @@ static NSString * const kTextAlignmentKey = @"textAlignment";
 }
 
 - (void)textViewDidChange:(UITextView *)textView {
-    
     if (_onChange) {
         _onChange(@{@"text":[textView.textStorage getPlainString]});
     }
 }
 
 - (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text {
+    // 处理键盘return事件
+    BOOL returnStatus = textView.returnKeyType == UIReturnKeyDone || textView.returnKeyType == UIReturnKeySend || textView.returnKeyType == UIReturnKeySearch;
+    if(returnStatus && [text isEqualToString:@"\n"]) {
+        if (self.onSubmitEditing) {
+            self.onSubmitEditing(@{@"text": [self.textStorage getPlainString]});
+        }
+        return NO;
+    }
   NSString *oldStr =  [self getStrContentInRange:NSMakeRange(0, [self.attributedText length])];
   NSString *newStr =  [NSString stringWithFormat:@"%@%@",oldStr,text];
+    [self handleTags:text];
+    if(self.tagStr != nil && ![self.tagStr isEqualToString:@""]){
+        if(self.keyWord == nil){
+            self.keyWord = @"";
+        }else{
+            self.keyWord = [NSString stringWithFormat:@"%@%@",self.keyWord,text];
+            self.keyWord = [self.keyWord stringByReplacingOccurrencesOfString:self.tagStr withString:@""];
+            
+        }
+        if (_onTag) {
+            _onTag(@{
+            @"tag": _tagStr,
+            @"keyWord": _keyWord,
+          });
+        }
+    }
   if (self.max_TextLength>0 && newStr.length>self.max_TextLength) {
     return NO;
   }
@@ -341,7 +398,20 @@ static NSString * const kTextAlignmentKey = @"textAlignment";
     }
   return YES;
  }
-
+-(void)handleTags:(NSString *)text {
+   __block Boolean istags =NO;
+    __block NSString *tagStr = @"";
+    [self.tags enumerateObjectsWithOptions:NSEnumerationReverse usingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+         NSLog(@"%@----%@",self.tags[idx],[NSThread currentThread]);
+        NSString *str = self.tags[idx];
+        if([str isEqualToString:text]){
+            istags = YES;
+            tagStr = text;
+            self.tagStr = tagStr;
+            self.keyWord = @"";
+        }
+     }];
+}
 - (void)textViewDidBeginEditing:(UITextView *)textView {
   //todo
 }
@@ -439,21 +509,21 @@ static NSString * const kTextAlignmentKey = @"textAlignment";
 
 #pragma mark copy cut part
 
--(void)paste:(id)sender{
-    UIPasteboard *defaultPasteboard = [UIPasteboard generalPasteboard];
-    if(defaultPasteboard.string.length>0){
-        NSRange range = self.selectedRange;
-        if(range.location == NSNotFound){
-            range.location = self.text.length;
-        }
-        if([self.delegate textView:self shouldChangeTextInRange:range replacementText:defaultPasteboard.string]){
-           NSAttributedString *newAttriString = [self getEmojiText:defaultPasteboard.string];
-           [self insertAttriStringToTextview:newAttriString];
-        }
-        return;
-    }
-    [super paste:sender];
-}
+//-(void)paste:(id)sender{
+//    UIPasteboard *defaultPasteboard = [UIPasteboard generalPasteboard];
+//    if(defaultPasteboard.string.length>0){
+//        NSRange range = self.selectedRange;
+//        if(range.location == NSNotFound){
+//            range.location = self.text.length;
+//        }
+//        if([self.delegate textView:self shouldChangeTextInRange:range replacementText:defaultPasteboard.string]){
+//           NSAttributedString *newAttriString = [self getEmojiText:defaultPasteboard.string];
+//           [self insertAttriStringToTextview:newAttriString];
+//        }
+//        return;
+//    }
+//    [super paste:sender];
+//}
 
 -(void)insertAttriStringToTextview:(NSAttributedString*)attriString{
     NSMutableAttributedString *mulAttriString = [[NSMutableAttributedString alloc]initWithAttributedString:self.attributedText];
@@ -552,5 +622,78 @@ static NSString * const kTextAlignmentKey = @"textAlignment";
     CGSize size = [super intrinsicContentSize];
     size.height = self.contentSize.height;
     return size;
+}
+- (void)updateContentInset {
+    NSLog(@"contentSize %@",NSStringFromCGSize(self.contentSize));
+    CGFloat deadSpace = (CGRectGetHeight(self.bounds) - self.contentSize.height);
+    CGFloat inset = MAX(0, deadSpace/2.0);
+    self.contentInset = UIEdgeInsetsMake(inset, self.contentInset.left, inset, self.contentInset.right);
+    self.contentOffset = CGPointMake(0, -inset);
+    [self layoutSubviews];
+}
+- (void)setPaddingTop:(CGFloat)paddingTop
+{
+    _paddingTop = paddingTop;
+    
+    UIEdgeInsets insets = self.textContainerInset;
+    [self setPaddingTop:paddingTop left:insets.left bottom:insets.bottom right:insets.right];
+}
+
+- (void)setPaddingLeft:(CGFloat)paddingLeft
+{
+    _paddingLeft = paddingLeft;
+    
+    UIEdgeInsets insets = self.textContainerInset;
+    [self setPaddingTop:insets.top left:paddingLeft bottom:insets.bottom right:insets.right];
+}
+
+- (void)setPaddingBottom:(CGFloat)paddingBottom
+{
+    _paddingBottom = paddingBottom;
+    
+    UIEdgeInsets insets = self.textContainerInset;
+    [self setPaddingTop:insets.top left:insets.left bottom:paddingBottom right:insets.right];
+}
+
+- (void)setPaddingRight:(CGFloat)paddingRight
+{
+    _paddingRight = paddingRight;
+    
+    UIEdgeInsets insets = self.textContainerInset;
+    [self setPaddingTop:insets.top left:insets.left bottom:insets.bottom right:paddingRight];
+}
+- (void)setPaddingTop:(CGFloat)top left:(CGFloat)left bottom:(CGFloat)bottom right:(CGFloat)right
+{
+    UIEdgeInsets insets = UIEdgeInsetsMake(top, left, bottom, right);
+    self.textContainerInset = insets;
+}
+- (void)setPadding:(CGFloat)padding
+{
+    _padding = padding;
+    [self setPaddingTop:padding left:padding bottom:padding right:padding];
+}
+- (void)setPaddingHorizontal:(CGFloat)paddingHorizontal
+{
+    _paddingHorizontal = paddingHorizontal;
+    UIEdgeInsets insets = self.textContainerInset;
+    [self setPaddingTop:insets.top left:paddingHorizontal bottom:insets.bottom right:paddingHorizontal];
+}
+- (void)setPaddingVertical:(CGFloat)paddingVertical
+{
+    _paddingVertical = paddingVertical;
+    UIEdgeInsets insets = self.textContainerInset;
+    [self setPaddingTop:paddingVertical left:insets.left bottom:paddingVertical right:insets.right];
+}
+- (BOOL)textInputShouldReturn
+{
+  // We send `submit` event here, in `textInputShouldReturn`
+  // (not in `textInputDidReturn)`, because of semantic of the event:
+  // `onSubmitEditing` is called when "Submit" button
+  // (the blue key on onscreen keyboard) did pressed
+  // (no connection to any specific "submitting" process).
+  if (self.onSubmitEditing) {
+    self.onSubmitEditing(@{@"text": [self.textStorage getPlainString]});
+  }
+  return _blurOnSubmit;
 }
 @end

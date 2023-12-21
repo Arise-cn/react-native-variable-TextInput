@@ -8,6 +8,8 @@ import android.graphics.Rect;
 import android.graphics.Typeface;
 
 public class BitmapUtil {
+  private static int height = 60;
+  private static int baseLine = 48;
 
   public static Bitmap getTextBitmap(String name, Typeface typeface, float fontSize, int color) {
     Paint paint = new Paint();
@@ -24,9 +26,9 @@ public class BitmapUtil {
     paint.getTextBounds(name, 0, name.length(), rect);
     // 获取字符串在屏幕上的长度
     int width = (int) (paint.measureText(name));
-    final Bitmap bmp = Bitmap.createBitmap(width, rect.height(), Bitmap.Config.ARGB_8888);
+    final Bitmap bmp = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
     Canvas canvas = new Canvas(bmp);
-    canvas.drawText(name, rect.left, rect.height() - rect.bottom, paint);
+    canvas.drawText(name, rect.left, baseLine, paint);
     return bmp;
   }
 
@@ -39,4 +41,14 @@ public class BitmapUtil {
     matrix.postScale(scaleWidth, scaleHeight);
     return Bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, true);
   }
+
+//  private static int getBaseLine(Paint paint) {
+//    if (baseLine == 0) {
+//      Paint.FontMetricsInt fontMetrics = paint.getFontMetricsInt();
+//      int dy = (fontMetrics.bottom - fontMetrics.top) / 2 - fontMetrics.bottom;
+//      baseLine = dy;
+//      return height / 2 + dy;
+//    }
+//    return baseLine;
+//  }
 }

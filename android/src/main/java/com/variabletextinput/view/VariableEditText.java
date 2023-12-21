@@ -3,11 +3,15 @@ package com.variabletextinput.view;
 import android.content.Context;
 import android.util.AttributeSet;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatEditText;
 
 public class VariableEditText extends AppCompatEditText {
 
   private OnMenuItemCallBack mOnMenuItemCallBack;
+
+  private @Nullable
+  String mSubmitBehavior = null;
 
   public VariableEditText(Context context) {
     super(context);
@@ -20,7 +24,38 @@ public class VariableEditText extends AppCompatEditText {
   public VariableEditText(Context context, AttributeSet attrs, int defStyleAttr) {
     super(context, attrs, defStyleAttr);
   }
+  public boolean shouldSubmitOnReturn() {
+    String submitBehavior = getSubmitBehavior();
+    boolean shouldSubmit;
 
+    // Default shouldSubmit
+    if (submitBehavior == null) {
+      shouldSubmit = false;
+    } else {
+      shouldSubmit = submitBehavior.equals("submit") || submitBehavior.equals("blurAndSubmit");
+    }
+
+    return shouldSubmit;
+  }
+  public void setSubmitBehavior(String submitBehavior) {
+    mSubmitBehavior = submitBehavior;
+  }
+  public boolean shouldBlurOnReturn() {
+    String submitBehavior = getSubmitBehavior();
+    boolean shouldBlur;
+
+    // Default shouldBlur
+    if (submitBehavior == null) {
+      shouldBlur = false;
+    } else {
+      shouldBlur = submitBehavior.equals("blurAndSubmit");
+    }
+
+    return shouldBlur;
+  }
+  public String getSubmitBehavior() {
+    return mSubmitBehavior;
+  }
   @Override
   public boolean isLayoutRequested() {
     // If we are watching and updating container height based on content size

@@ -44,12 +44,25 @@ NS_ASSUME_NONNULL_BEGIN
 @property(assign, nonatomic, getter=isSupport) BOOL bSupport;
 @property(nonatomic, copy) RCTBubblingEventBlock onChange;
 @property (nonatomic, copy, nullable) RCTDirectEventBlock onContentSizeChange;
+@property(nonatomic, copy, nullable) RCTDirectEventBlock onSubmitEditing;
+@property(nonatomic,copy, nullable)RCTDirectEventBlock onTag;
 @property(nonatomic, copy, nullable) RCTDirectEventBlock onTextInput;
+@property(nonatomic, copy, nullable) RCTDirectEventBlock onBlur;
+@property(nonatomic, copy, nullable) RCTDirectEventBlock onFocus;
 @property(nonatomic, strong) NSDictionary *defultTypingAttributes;
 @property(nonatomic, strong) NSArray *tags;
 @property(nonatomic, strong) NSString *keyWord;
+@property(nonatomic,strong)NSString *tagStr;
 @property(nonatomic, assign) Boolean startKeyWord;
 @property (nonatomic, strong) NSLayoutConstraint *heightConstraint;
+@property (nonatomic, assign) CGFloat paddingTop;
+@property (nonatomic, assign) CGFloat paddingLeft;
+@property (nonatomic, assign) CGFloat paddingRight;
+@property (nonatomic, assign) CGFloat paddingBottom;
+@property (nonatomic, assign) CGFloat paddingHorizontal;
+@property (nonatomic, assign) CGFloat paddingVertical;
+@property (nonatomic, assign) CGFloat padding;
+@property (nonatomic, assign) BOOL blurOnSubmit;
 - (void)setPlaceholderVisibleForText:(NSString *)str;
 - (NSString *)getStrContentInRange:(NSRange)range;
 @end
