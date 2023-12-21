@@ -483,7 +483,7 @@ static NSString * const kTextAlignmentKey = @"textAlignment";
         UIPasteboard *defaultPasteboard = [UIPasteboard generalPasteboard];
         [defaultPasteboard setString:content];
         // 标记视图需要重新布局
-        [self setNeedsLayout];f
+        [self setNeedsLayout];
         return;
     }
     // 标记视图需要重新布局
