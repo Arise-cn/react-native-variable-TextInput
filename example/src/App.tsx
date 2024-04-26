@@ -14,6 +14,7 @@ import {
   VariableTextInputView,
 } from 'react-native-variable-text-input';
 import { EmojiList } from './EmojiList';
+import type { IInputEmojiDataType } from './assets';
 export const App = () => {
   const inPutRef = React.createRef<IATTextViewBase>();
   const [keyBoardHeight, setKeyBoardHeight] = useState<number>(0);
@@ -52,24 +53,30 @@ export const App = () => {
     //todo
     console.log('onMentions===>', data);
   };
-  const onTouchEmView = () => {
-    setKeyBoardHeight(0);
-    inPutRef.current?.blur();
-  };
+  // const onTouchEmView = () => {
+  //   setKeyBoardHeight(0);
+  //   inPutRef.current?.blur();
+  // };
   const onTouchContro = () => {
     !showEmoji && inPutRef.current?.blur();
     showEmoji && inPutRef.current?.focus();
     setShowEmoji(!showEmoji);
   };
+  const onPressText = () => {
+    inPutRef.current?.changeAttributedText([{ type: 0, text: 'eeeeeee' }]);
+  };
+  const onSelect = (data: IInputEmojiDataType) => {
+    //todo
+    inPutRef.current?.changeAttributedText([
+      { type: 0, text: 'eeeeeee' },
+      data,
+    ]);
+  };
   return (
     <View style={styles.container}>
-      <View style={{ flex: 1, width: '100%' }}>
-        <TouchableOpacity
-          onPress={onTouchEmView}
-          activeOpacity={1}
-          style={{ flex: 1 }}
-        />
-      </View>
+      <Text onPress={onPressText} style={{ marginTop: 200, marginBottom: 50 }}>
+        {'测试方法'}
+      </Text>
       <View>
         <View style={styles.hor}>
           <VariableTextInputView
@@ -109,7 +116,11 @@ export const App = () => {
             <Text style={styles.sendText}>SEND</Text>
           </View>
         </View>
-        <EmojiList numColumns={6} keyBoardHeight={keyBoardHeight} />
+        <EmojiList
+          numColumns={6}
+          keyBoardHeight={keyBoardHeight}
+          onSelect={onSelect}
+        />
       </View>
     </View>
   );
@@ -118,8 +129,6 @@ export default App;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'flex-end',
   },
   box: {
     backgroundColor: '#000',

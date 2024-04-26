@@ -6,11 +6,20 @@
 #import <React/RCTConvert.h>
 #import "EmojiTextAttachment.h"
 #import "NSAttributedString+EmojiExtension.h"
+#import <React/RCTUIManager.h>
 @interface VariableTextInputViewManager : RCTViewManager<RCTBridgeModule>
 @property(nonatomic,strong)VariableTextInput *textInput;
 @property (nonatomic, strong)NSDictionary *typingAttributes;
+@property (nonatomic, weak) RCTUIManager *uiManager;
 @end
 @implementation VariableTextInputViewManager
+- (instancetype)initWithBridge:(RCTBridge *)bridge
+{
+  if (self = [super init]) {
+    _uiManager = [bridge moduleForClass:[RCTUIManager class]];
+  }
+  return self;
+}
 RCT_EXPORT_MODULE()
 RCT_EXPORT_VIEW_PROPERTY(placeholder, NSString)
 RCT_EXPORT_VIEW_PROPERTY(text, NSString)
@@ -64,35 +73,60 @@ RCT_CUSTOM_VIEW_PROPERTY(fontSize, NSNumber, VariableTextInput)
     self.textInput.defultTypingAttributes = self.textInput.typingAttributes;
   }
 }
-RCT_EXPORT_METHOD(focus)
+RCT_EXPORT_METHOD(focus:(nonnull NSNumber*) reactTag)
 {
-  dispatch_async(dispatch_get_main_queue(), ^{
-    [self->_textInput becomeFirstResponder];
-  });
+    [self.uiManager addUIBlock:^(RCTUIManager *uiManager, NSDictionary<NSNumber *,UIView *> *viewRegistry) {
+        VariableTextInput *input =(VariableTextInput *) viewRegistry[reactTag];
+        if (!input || ![input isKindOfClass:[VariableTextInput class]]) {
+            RCTLogError(@"Cannot find NativeView with tag #%@", reactTag);
+          return;
+        }
+        [input becomeFirstResponder];
+    }];
 }
 
-RCT_EXPORT_METHOD(blur)
+RCT_EXPORT_METHOD(blur:(nonnull NSNumber*) reactTag)
 {
-  dispatch_async(dispatch_get_main_queue(), ^{
-    [self->_textInput resignFirstResponder];
-  });
+    [self.uiManager addUIBlock:^(RCTUIManager *uiManager, NSDictionary<NSNumber *,UIView *> *viewRegistry) {
+        VariableTextInput *input =(VariableTextInput *) viewRegistry[reactTag];
+        if (!input || ![input isKindOfClass:[VariableTextInput class]]) {
+            RCTLogError(@"Cannot find NativeView with tag #%@", reactTag);
+          return;
+        }
+        [input resignFirstResponder];
+    }];
 }
-RCT_EXPORT_METHOD(changeAttributedText:(NSArray *)arr){
-  dispatch_async(dispatch_get_main_queue(), ^{
-    [self setAttributedText:arr];
-  });
+RCT_EXPORT_METHOD( changeAttributedText:(nonnull NSNumber*) reactTag arr:(NSDictionary *)arr){
+    [self.uiManager addUIBlock:^(RCTUIManager *uiManager, NSDictionary<NSNumber *,UIView *> *viewRegistry) {
+        VariableTextInput *input =(VariableTextInput *) viewRegistry[reactTag];
+        if (!input || ![input isKindOfClass:[VariableTextInput class]]) {
+            RCTLogError(@"Cannot find NativeView with tag #%@", reactTag);
+          return;
+        }
+        [self setAttributedText:[arr objectForKey:@"data"] input:input];
+    }];
 }
-RCT_EXPORT_METHOD(insertMentions:(NSDictionary *)mention)
+RCT_EXPORT_METHOD(insertMentions:(nonnull NSNumber*) reactTag mention:(NSDictionary *)mention)
 {
-    dispatch_async(dispatch_get_main_queue(), ^{
-      [self insertTagText:mention];
-  });
+    [self.uiManager addUIBlock:^(RCTUIManager *uiManager, NSDictionary<NSNumber *,UIView *> *viewRegistry) {
+        VariableTextInput *input =(VariableTextInput *) viewRegistry[reactTag];
+        if (!input || ![input isKindOfClass:[VariableTextInput class]]) {
+            RCTLogError(@"Cannot find NativeView with tag #%@", reactTag);
+          return;
+        }
+        [self insertTagText:[mention objectForKey:@"data"] input:input];
+    }];
 }
-RCT_EXPORT_METHOD(insertEmoji:( NSDictionary *)rnImageData)
+RCT_EXPORT_METHOD(insertEmoji:(nonnull NSNumber*) reactTag rnImageData:( NSDictionary *)rnImageData)
 {
-  dispatch_async(dispatch_get_main_queue(), ^{
-    [self insertTextEmoji:rnImageData];
-    });
+    [self.uiManager addUIBlock:^(RCTUIManager *uiManager, NSDictionary<NSNumber *,UIView *> *viewRegistry) {
+        VariableTextInput *input =(VariableTextInput *) viewRegistry[reactTag];
+        if (!input || ![input isKindOfClass:[VariableTextInput class]]) {
+            RCTLogError(@"Cannot find NativeView with tag #%@", reactTag);
+          return;
+        }
+        [self insertTextEmoji:[rnImageData objectForKey:@"data"] input:input];
+    }];
 }
 RCT_EXPORT_METHOD(dismissTag)
 {
@@ -103,6 +137,7 @@ RCT_EXPORT_METHOD(dismissTag)
 }
 - (UIView *)view
 {
+    _uiManager = [self.bridge moduleForClass:[RCTUIManager class]];
     _textInput = [[VariableTextInput alloc]init];
     _textInput.textContainerInset = UIEdgeInsetsZero;
     _textInput.textContainer.lineFragmentPadding = 0;
@@ -155,71 +190,71 @@ RCT_EXPORT_METHOD(dismissTag)
 
 
 #pragma mark insertMethod
--(void)setTextAttachment:(UIImage *)img tag:(NSString *)tag size:(CGSize)size copyStr:(NSString *)copyStr{
-  if ([self isOutMaxLength:copyStr]) {
+-(void)setTextAttachment:(UIImage *)img tag:(NSString *)tag size:(CGSize)size copyStr:(NSString *)copyStr input:(VariableTextInput *)input{
+  if ([self isOutMaxLength:copyStr input:input]) {
     return;
   }
   EmojiTextAttachment *emojiTextAttachment = [EmojiTextAttachment new];
   emojiTextAttachment.emojiTag = tag;
   emojiTextAttachment.image = img;
   emojiTextAttachment.showCopyStr = copyStr;
-  CGFloat paddingTop = self.textInput.font.lineHeight - self.textInput.font.pointSize;
+  CGFloat paddingTop = input.font.lineHeight - input.font.pointSize;
   emojiTextAttachment.react = CGRectMake(0, -paddingTop, size.width, size.height);
   NSAttributedString *str = [NSAttributedString attributedStringWithAttachment:emojiTextAttachment];
-  NSRange selectedRange = self.textInput.selectedRange;
+  NSRange selectedRange = input.selectedRange;
   if (selectedRange.length > 0) {
-    [self.textInput.textStorage deleteCharactersInRange:selectedRange];
+    [input.textStorage deleteCharactersInRange:selectedRange];
    }
-  [self.textInput.textStorage insertAttributedString:str atIndex:self.textInput.selectedRange.location];
-  self.textInput.selectedRange = NSMakeRange(self.textInput.selectedRange.location+1, 0);
+  [input.textStorage insertAttributedString:str atIndex:input.selectedRange.location];
+  input.selectedRange = NSMakeRange(input.selectedRange.location+1, 0);
   //插入表情后换行modal切换
   //插入表情后planceholder修改
-  NSString *planStr = [self.textInput.textStorage getPlainString];
-  [self.textInput setPlaceholderVisibleForText:planStr];
-  self.textInput.typingAttributes = self.typingAttributes;
-  if (_textInput.onChange) {
-      _textInput.onChange(@{@"text": [_textInput.textStorage getPlainString]});
+  NSString *planStr = [input.textStorage getPlainString];
+  [input setPlaceholderVisibleForText:planStr];
+  input.typingAttributes = self.typingAttributes;
+  if (input.onChange) {
+      input.onChange(@{@"text": [input.textStorage getPlainString]});
   }
-  [self.textInput becomeFirstResponder];
+  [input becomeFirstResponder];
 }
--(Boolean)isOutMaxLength:(NSString *)str{
-  NSString *oldStr = [_textInput getStrContentInRange:NSMakeRange(0, _textInput.attributedText.length)];
+-(Boolean)isOutMaxLength:(NSString *)str input:(VariableTextInput *)input{
+  NSString *oldStr = [input getStrContentInRange:NSMakeRange(0, input.attributedText.length)];
   NSString *newStr = [NSString stringWithFormat:@"%@%@",oldStr,str];
-  if (_textInput.maxTextLength>0 && newStr.length>_textInput.maxTextLength) {
+  if (input.maxTextLength>0 && newStr.length>input.maxTextLength) {
     return YES;
   }else{
     return NO;
   }
 }
--(void)insertTextEmoji:(NSDictionary *)rnImageData{
-  self.typingAttributes = self.textInput.typingAttributes;
+-(void)insertTextEmoji:(NSDictionary *)rnImageData input:(VariableTextInput *)input{
+  self.typingAttributes = input.typingAttributes;
   EmojiTextAttachment *emojiTextAttachment = [EmojiTextAttachment new];
   //Set tag and image
   emojiTextAttachment.emojiTag = rnImageData[@"emojiTag"];
   UIImage *image =[RCTConvert UIImage:rnImageData[@"img"]];
   emojiTextAttachment.showCopyStr =rnImageData[@"emojiTag"];
-  if ([self isOutMaxLength:rnImageData[@"emojiTag"]]) {
+  if ([self isOutMaxLength:rnImageData[@"emojiTag"] input:input]) {
     return;
   }
   emojiTextAttachment.image = image;
-  CGFloat paddingTop = self.textInput.font.lineHeight - self.textInput.font.pointSize;
-  emojiTextAttachment.react = CGRectMake(0, -paddingTop, self.textInput.font.lineHeight, self.textInput.font.lineHeight);
+  CGFloat paddingTop = input.font.lineHeight - input.font.pointSize;
+  emojiTextAttachment.react = CGRectMake(0, -paddingTop, input.font.lineHeight, input.font.lineHeight);
   NSAttributedString *str = [NSAttributedString attributedStringWithAttachment:emojiTextAttachment];
-  NSRange selectedRange = self.textInput.selectedRange;
+  NSRange selectedRange = input.selectedRange;
   if (selectedRange.length > 0) {
-      [self.textInput.textStorage deleteCharactersInRange:selectedRange];
+      [input.textStorage deleteCharactersInRange:selectedRange];
   }
-  [self.textInput.textStorage insertAttributedString:str atIndex:self.textInput.selectedRange.location];
+  [input.textStorage insertAttributedString:str atIndex:input.selectedRange.location];
   
-  self.textInput.selectedRange = NSMakeRange(self.textInput.selectedRange.location+1, 0);
-  NSString *planStr = [self.textInput.textStorage getPlainString];
-  [self.textInput setPlaceholderVisibleForText:planStr];
-  self.textInput.typingAttributes = self.typingAttributes;
-    if (_textInput.onChange) {
-        _textInput.onChange(@{@"text": [_textInput.textStorage getPlainString]});
+  input.selectedRange = NSMakeRange(input.selectedRange.location+1, 0);
+  NSString *planStr = [input.textStorage getPlainString];
+  [input setPlaceholderVisibleForText:planStr];
+  input.typingAttributes = self.typingAttributes;
+    if (input.onChange) {
+        input.onChange(@{@"text": [input.textStorage getPlainString]});
     }
 }
--(void)insertTagText:(NSDictionary *)mention{
+-(void)insertTagText:(NSDictionary *)mention input:(VariableTextInput *)input{
   NSString *tag = [RCTConvert NSString:mention[@"tag"]];
   NSString *name =[RCTConvert NSString:mention[@"name"]];
   UIColor *color =  [RCTConvert UIColor:mention[@"color"]];
@@ -227,25 +262,25 @@ RCT_EXPORT_METHOD(dismissTag)
   NSString *showStr = [[tag stringByAppendingString:name] stringByAppendingString:@" "];
   NSString *emojiTag = [NSString stringWithFormat:@"{%@}[%@](%@)",tag,name,user_id];
   NSString *copyStr = [NSString stringWithFormat:@"%@%@",tag,name];
-  self.typingAttributes = self.textInput.typingAttributes;
-  NSMutableDictionary <NSAttributedStringKey, id>*dic =[NSMutableDictionary dictionaryWithDictionary:self.textInput.typingAttributes];
+  self.typingAttributes = input.typingAttributes;
+  NSMutableDictionary <NSAttributedStringKey, id>*dic =[NSMutableDictionary dictionaryWithDictionary:input.typingAttributes];
   [dic setObject:color forKey:@"NSColor"];
-  CGSize textSize = [showStr sizeWithAttributes:self.textInput.typingAttributes];
+  CGSize textSize = [showStr sizeWithAttributes:input.typingAttributes];
   UIImage *image =  [self drawImageWithColor:[UIColor clearColor] size:textSize text:[NSString stringWithFormat:@"%@",showStr] textAttributes:dic circular:NO];
-    if(_textInput.tagStr != nil && ![_textInput.tagStr isEqualToString:@""]){
-        _textInput.text = [_textInput.text stringByReplacingOccurrencesOfString:[NSString stringWithFormat:@"%@%@",_textInput.tagStr,_textInput.keyWord] withString:@""];
-        NSAttributedString *attString = _textInput.attributedText;
-        _textInput.tagStr = @"";
-        _textInput.keyWord = @"";
+    if(input.tagStr != nil && ![input.tagStr isEqualToString:@""]){
+        input.text = [input.text stringByReplacingOccurrencesOfString:[NSString stringWithFormat:@"%@%@",input.tagStr,input.keyWord] withString:@""];
+        NSAttributedString *attString = input.attributedText;
+        input.tagStr = @"";
+        input.keyWord = @"";
     }
-  [self setTextAttachment:image tag:emojiTag size:textSize copyStr:copyStr];
+  [self setTextAttachment:image tag:emojiTag size:textSize copyStr:copyStr input:input];
   
 }
 
--(void)setAttributedText:(NSArray *)arr{
+-(void)setAttributedText:(NSArray *)arr input:(VariableTextInput *)input{
   NSMutableAttributedString *attStr = [[NSMutableAttributedString alloc]init];
-  UIFont *textFont = [_textInput.defultTypingAttributes objectForKey:@"NSFont"];
-  CGFloat oldpaddingTop = self.textInput.font.lineHeight - self.textInput.font.pointSize;
+  UIFont *textFont = [input.defultTypingAttributes objectForKey:@"NSFont"];
+  CGFloat oldpaddingTop = input.font.lineHeight - input.font.pointSize;
   [arr enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
     NSDictionary *dic = arr[idx];
     NSNumber *typeNum = dic[@"type"];
@@ -255,7 +290,7 @@ RCT_EXPORT_METHOD(dismissTag)
       NSString *str = [RCTConvert NSString:dic[@"text"]];
       NSAttributedString *text = [[NSAttributedString alloc]initWithString:str];
       NSMutableAttributedString *normMutaStr = [[NSMutableAttributedString alloc]initWithAttributedString:text];
-      [normMutaStr addAttributes:_textInput.defultTypingAttributes range:NSMakeRange(0, normMutaStr.length)];
+      [normMutaStr addAttributes:input.defultTypingAttributes range:NSMakeRange(0, normMutaStr.length)];
       [attStr appendAttributedString:normMutaStr];
     }
     if(type == 1){
@@ -265,7 +300,7 @@ RCT_EXPORT_METHOD(dismissTag)
       emojiTextAttachment.emojiTag = rnImageData[@"emojiTag"];
       UIImage *image =[RCTConvert UIImage:rnImageData[@"img"]];
       emojiTextAttachment.showCopyStr =rnImageData[@"emojiTag"];
-      if ([self isOutMaxLength:rnImageData[@"emojiTag"]]) {
+      if ([self isOutMaxLength:rnImageData[@"emojiTag"] input:input]) {
         return;
       }
       emojiTextAttachment.image = image;
@@ -283,9 +318,9 @@ RCT_EXPORT_METHOD(dismissTag)
       NSString *showStr = [[tag stringByAppendingString:name] stringByAppendingString:@" "];
       NSString *emojiTag = [NSString stringWithFormat:@"{%@}[%@](%@)",tag,name,user_id];
       NSString *copyStr = [NSString stringWithFormat:@"%@%@",tag,name];
-      NSMutableDictionary <NSAttributedStringKey, id>*dic =[NSMutableDictionary dictionaryWithDictionary:_textInput.defultTypingAttributes];
+      NSMutableDictionary <NSAttributedStringKey, id>*dic =[NSMutableDictionary dictionaryWithDictionary:input.defultTypingAttributes];
       [dic setObject:color forKey:@"NSColor"];
-      CGSize textSize = [showStr sizeWithAttributes:_textInput.defultTypingAttributes];
+      CGSize textSize = [showStr sizeWithAttributes:input.defultTypingAttributes];
       UIImage *image =  [self drawImageWithColor:[UIColor clearColor] size:textSize text:[NSString stringWithFormat:@"%@",showStr] textAttributes:dic circular:NO];
       EmojiTextAttachment *emojiTextAttachment = [EmojiTextAttachment new];
       emojiTextAttachment.emojiTag = emojiTag;
@@ -296,10 +331,10 @@ RCT_EXPORT_METHOD(dismissTag)
       [attStr appendAttributedString:str];
     }
   }];
-  [attStr addAttributes:_textInput.defultTypingAttributes range:NSMakeRange(0, attStr.length)];
-  _textInput.attributedText = attStr;
-    if (_textInput.onChange) {
-        _textInput.onChange(@{@"text": [_textInput.textStorage getPlainString]});
+  [attStr addAttributes:input.defultTypingAttributes range:NSMakeRange(0, attStr.length)];
+    input.attributedText = attStr;
+    if (input.onChange) {
+        input.onChange(@{@"text": [input.textStorage getPlainString]});
     }
   
 }

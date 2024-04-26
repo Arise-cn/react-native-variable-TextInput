@@ -5,7 +5,6 @@ import {
   ColorValue,
   NativeSyntheticEvent,
   TextInputChangeEventData,
-  NativeModules,
   StyleSheet,
   processColor,
   TextInputContentSizeChangeEventData,
@@ -31,7 +30,6 @@ import type {
   PrivateItemData,
 } from './exTypes';
 import { deletKeyBord, getAttributedTextArr } from './Util';
-const VariableTextInputViewManager = NativeModules.VariableTextInputViewManager;
 interface INativeProps {
   style?: StyleProp<TextStyle> | undefined;
   placeholder?: string;
@@ -121,15 +119,6 @@ const VariableTextInputView = forwardRef(
       props.onChangeText && props.onChangeText(text);
       props.onChange && props.onChange(e);
     };
-    // useEffect(() => {
-    //   if (!!props.text) {
-    //     const attStrArr: IInserTextAttachmentItem[] = getAttributedTextArr(
-    //       props.text,
-    //       !!props.emojiData ? props.emojiData : []
-    //     );
-    //     changeAttributedText(attStrArr);
-    //   }
-    // }, [props.text]);
     const clearMention = () => {
       if (!!mention) {
         setMention('');
@@ -137,18 +126,10 @@ const VariableTextInputView = forwardRef(
       }
     };
     const focus = () => {
-      if (Platform.OS === 'android') {
-        callNativeMethod('focus');
-      } else {
-        VariableTextInputViewManager.focus();
-      }
+      callNativeMethod('focus');
     };
     const blur = () => {
-      if (Platform.OS === 'android') {
-        callNativeMethod('blur');
-      } else {
-        VariableTextInputViewManager.blur();
-      }
+      callNativeMethod('blur');
       clearMention();
     };
     const callNativeMethod = (methodName: string, data?: any) => {
@@ -156,10 +137,10 @@ const VariableTextInputView = forwardRef(
       const Commands = UIManager.getViewManagerConfig(
         'VariableTextInputView'
       ).Commands;
-      const commandId = Commands[methodName] || '';
+      const commandId = Commands[methodName];
       UIManager.dispatchViewManagerCommand(
         reactTag,
-        commandId,
+        commandId || 0,
         !!data ? data : []
       );
     };
@@ -171,7 +152,7 @@ const VariableTextInputView = forwardRef(
       if (Platform.OS === 'android') {
         callNativeMethod('insertEmoji', [sendData]);
       } else {
-        VariableTextInputViewManager.insertEmoji(sendData);
+        callNativeMethod('insertEmoji', [{ data: [sendData] }]);
       }
     };
     const insertMentions = (data: IInserTextAttachmentItem) => {
@@ -180,7 +161,7 @@ const VariableTextInputView = forwardRef(
         color: processColor(data.color),
       };
       if (Platform.OS === 'ios') {
-        VariableTextInputViewManager.insertMentions(sendData);
+        callNativeMethod('insertMentions', [{ data: sendData }]);
       } else {
         callNativeMethod('insertMentions', [sendData]);
       }
@@ -191,7 +172,7 @@ const VariableTextInputView = forwardRef(
         data.forEach((item) => {
           const newItem: PrivateItemData = {
             ...item,
-            color: processColor(item.color),
+            color: processColor(item.color || '#000'),
           };
           sendData.push(newItem);
         });
@@ -199,7 +180,7 @@ const VariableTextInputView = forwardRef(
       if (Platform.OS === 'android') {
         callNativeMethod('changeAttributedText', sendData);
       } else {
-        VariableTextInputViewManager.changeAttributedText(sendData);
+        callNativeMethod('changeAttributedText', [{ data: sendData }]);
       }
     };
     const onContentSizeChange = (event: any) => {
