@@ -21,6 +21,12 @@ export interface IVTTextInputData {
     text: string;
   };
 }
+export interface IVSelection {
+  nativeEvent: {
+    start: number;
+    end: number;
+  };
+}
 export enum ITextType {
   emoji = 1,
   normal = 0,

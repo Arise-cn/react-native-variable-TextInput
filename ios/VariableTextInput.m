@@ -344,6 +344,10 @@ static NSString * const kTextAlignmentKey = @"textAlignment";
         }
     }
     self.cursorLocation = textView.selectedRange.location;
+    NSRange selection = textView.selectedRange;
+    if (_onIOSSelectionChange) {
+        _onIOSSelectionChange(@{@"selection":@{@"start":[NSNumber numberWithInt:selection.location],@"end":[NSNumber numberWithInt:selection.location + selection.length]}});
+    }
 }
 
 - (void)textViewDidChange:(UITextView *)textView {

@@ -11,6 +11,7 @@ import {
   Platform,
   KeyboardTypeOptions,
   ReturnKeyTypeOptions,
+  TextInputSelectionChangeEventData,
 } from 'react-native';
 import React, {
   forwardRef,
@@ -24,6 +25,7 @@ import type {
   IATTextViewBase,
   IEmojiData,
   IInserTextAttachmentItem,
+  IVSelection,
   IVTTextInputData,
   IonMentionData,
   MentionData,
@@ -60,6 +62,12 @@ interface INativeProps {
   onAndroidFocus?: () => void;
   onAndroidBlur?: () => void;
   returnKeyType?: ReturnKeyTypeOptions | undefined;
+  onIOSSelectionChange?: (
+    e: NativeSyntheticEvent<TextInputSelectionChangeEventData>
+  ) => void;
+  onAndroidSelectionChange?: (
+    e: NativeSyntheticEvent<TextInputSelectionChangeEventData>
+  ) => void;
 }
 interface IProps {
   style?: StyleProp<TextStyle> | undefined;
@@ -85,6 +93,7 @@ interface IProps {
   onBlur?: () => void;
   onFocus?: () => void;
   returnKeyType?: ReturnKeyTypeOptions | undefined;
+  onSelectionChange?: (e: IVSelection) => void;
 }
 export type IATTextViewRef = React.ForwardedRef<IATTextViewBase>;
 
@@ -231,6 +240,12 @@ const VariableTextInputView = forwardRef(
     const onAndroidTextInput = (e: IVTTextInputData) => {
       props.onTextInput && props.onTextInput(e);
     };
+    const _onSelectionChange = (
+      e: NativeSyntheticEvent<TextInputSelectionChangeEventData>
+    ) => {
+      props.onSelectionChange &&
+        props.onSelectionChange({ nativeEvent: e.nativeEvent.selection });
+    };
     const style = StyleSheet.flatten([props.style, { height: currentHeight }]);
     return (
       <RNTVariableTextInputView
@@ -245,6 +260,8 @@ const VariableTextInputView = forwardRef(
         onAndroidTextInput={onAndroidTextInput}
         onAndroidBlur={props.onBlur}
         onAndroidFocus={props.onFocus}
+        onIOSSelectionChange={_onSelectionChange}
+        onAndroidSelectionChange={_onSelectionChange}
         style={style}
       />
     );

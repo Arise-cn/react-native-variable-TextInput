@@ -7,9 +7,13 @@ import {
   TouchableOpacity,
   Text,
   Image,
+  TextInput,
+  NativeSyntheticEvent,
+  TextInputKeyPressEventData,
 } from 'react-native';
 import {
   IATTextViewBase,
+  IVSelection,
   IonMentionData,
   VariableTextInputView,
 } from 'react-native-variable-text-input';
@@ -72,11 +76,22 @@ export const App = () => {
       data,
     ]);
   };
+  const onSelectionChange = (e: IVSelection) => {
+    console.log('==ddd===>', e.nativeEvent);
+  };
+  const onKeyPress = (e: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
+    console.log('==onKeyPress==>', e.nativeEvent.key);
+  };
   return (
     <View style={styles.container}>
       <Text onPress={onPressText} style={{ marginTop: 200, marginBottom: 50 }}>
         {'测试方法'}
       </Text>
+      <TextInput
+        style={{ marginTop: 50, width: '100%', height: 100 }}
+        placeholder="ddddddd"
+        onKeyPress={onKeyPress}
+      />
       <View>
         <View style={styles.hor}>
           <VariableTextInputView
@@ -97,6 +112,7 @@ export const App = () => {
             onFocus={() => {
               console.log('==onFocus==');
             }}
+            onSelectionChange={onSelectionChange}
           />
           <TouchableOpacity
             activeOpacity={0.85}

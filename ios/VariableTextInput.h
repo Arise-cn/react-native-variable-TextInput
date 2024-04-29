@@ -49,6 +49,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic, copy, nullable) RCTDirectEventBlock onTextInput;
 @property(nonatomic, copy, nullable) RCTDirectEventBlock onBlur;
 @property(nonatomic, copy, nullable) RCTDirectEventBlock onFocus;
+@property(nonatomic, copy, nullable) RCTDirectEventBlock onIOSSelectionChange;
 @property(nonatomic, strong) NSDictionary *defultTypingAttributes;
 @property(nonatomic, strong) NSArray *tags;
 @property(nonatomic, strong) NSString *keyWord;
