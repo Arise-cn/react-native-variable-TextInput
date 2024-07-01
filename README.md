@@ -1,7 +1,8 @@
 # react-native-variable-text-input
 
 custom emoji textInput mentions which works both ios and Android
-
+Support inserting custom images into input boxes
+Support input box insertion any tag like"@" "#"...
 ## Demonstration
 
 <img src="./gifs/demo.gif?raw=true" width="20%">
